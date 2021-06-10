@@ -1,0 +1,29 @@
+{
+  "name": "server",
+  "version": "0.1.0",
+  "description": "scan repositories to create a Cybersecurity Bill of Materials",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.bundle.js",
+    "build": "webpack",
+    "dev": "nodemon ./server.js localhost 3080"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/JakeQuilty/cbom-maker"
+  },
+  "author": "Jacob Quilty",
+  "license": "TBD",
+  "bugs": {
+    "url": "https://github.com/JakeQuilty/cbom-maker/issues"
+  },
+  "homepage": "https://github.com/JakeQuilty/cbom-maker#readme",
+  "dependencies": {
+    "express": "^4.17.1",
+    "http-proxy-middleware": "^2.0.0"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.7",
+    "webpack": "^5.38.1"
+  }
+}
