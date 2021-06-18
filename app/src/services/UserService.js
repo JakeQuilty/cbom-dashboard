@@ -4,11 +4,11 @@ export async function getAllUsers() {
     return await response.json();
 }
 
-export async function createUser(data) {
-    const response = await fetch(`/api/user`, {
+export async function scanOrg(data) {
+    const response = await fetch(`/api/scan`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({user: data})
+        body: JSON.stringify({org: data})
       })
     return await response.json();
 }

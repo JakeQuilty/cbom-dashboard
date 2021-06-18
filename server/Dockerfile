@@ -8,4 +8,4 @@ COPY . .
 
 EXPOSE 3080
 
-CMD ["node", "server.js"]
+CMD ["node", "src/server.js"]

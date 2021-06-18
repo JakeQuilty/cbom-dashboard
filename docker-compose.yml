@@ -15,18 +15,19 @@ services:
       MYSQL_PASSWORD: password123
       MYSQL_ROOT_PASSWORD: rootPassword123
   backend:
-    # env_file:
-    #     "./backend/backend.env"
     build:
       context: ./server
       dockerfile: ./Dockerfile
     ports:
       - "3080:3080"
+    environment:
+      DB_ADDRESS: jdbc:mysql://database:3306/cbom_maker
+      DB_USERNAME: user
+      DB_PASSWORD: password123
+
   frontend:
     build:
       context: ./app
       dockerfile: ./Dockerfile
     ports:
       - "3000:3000"
-    links:
-      - "backend:server"
