@@ -14,16 +14,20 @@ services:
       MYSQL_USER: user
       MYSQL_PASSWORD: password123
       MYSQL_ROOT_PASSWORD: rootPassword123
+
   backend:
     build:
       context: ./server
       dockerfile: ./Dockerfile
     ports:
       - "3080:3080"
+    restart: always
+    depends_on: [database]
     environment:
-      DB_ADDRESS: jdbc:mysql://database:3306/cbom_maker
-      DB_USERNAME: user
-      DB_PASSWORD: password123
+      DB_ADDRESS: database
+      DB_USERNAME: root
+      DB_PASSWORD: rootPassword123
+      DB_NAME: cbom_maker
 
   frontend:
     build:
@@ -31,3 +35,5 @@ services:
       dockerfile: ./Dockerfile
     ports:
       - "3000:3000"
+    restart: always
+    depends_on: [backend]

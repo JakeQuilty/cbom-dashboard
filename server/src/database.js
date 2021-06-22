@@ -1,29 +1,16 @@
-const mysql = require('mysql');
+const mysql = require('mysql2');
 
-class Database {
-    constructor(){
-        this.host = process.env.DB_ADDRESS;
-        this.user = process.env.DB_USERNAME;
-        this.password = process.env.DB_PASSWORD;
-    }
-
-    connect(){
-        var con = mysql.createConnection({
-            host: this.host,
-            user: this.user,
-            password: this.password
-          });
-        con.connect(function(err){
-            if (err) throw err;
-            console.log("Successfully connected to database");
-        })
-        return con;
-    }
-
-    // random number between 0-999999;
-    getRandomId(){
-        return Math.floor(Math.random() * 10000000);
-    }
+const dbConfig = {
+    host: process.env.DB_ADDRESS,
+    user: process.env.DB_USERNAME,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+    waitForConnections: true,
+    connectionLimit: 10,
+    queueLimit:0
 }
 
-module.exports = Database;
+// https://stackoverflow.com/questions/18496540/node-js-mysql-connection-pooling
+const pool = mysql.createPool(dbConfig)
+
+module.exports = pool;

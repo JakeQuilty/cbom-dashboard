@@ -4,40 +4,40 @@ import './App.css';
 import { Header } from './components/Header'
 import { Users } from './components/Users'
 import ScanOrg from './components/ScanOrg'
-import { getAllUsers, scanOrg } from './services/UserService'
+import { getAllOrgs, scanOrg } from './services/OrgService'
 
 class App extends Component {
 
   state = {
     org: {},
     // leaving these here to avoid errors while im converting
-    user: {},
-    users: [],
-    numberOfUsers: 0
+    orgs: [],
+    numberOfOrgs: 0
   }
 
   scanOrg = (e) => {
-      scanOrg(this.state.user)
+      scanOrg(this.state.org)
         .then(response => {
           console.log(response);
       });
   }
 
-  getAllUsers = () => {
-    getAllUsers()
-      .then(users => {
-        console.log(users)
-        this.setState({users: users, numberOfUsers: users.length})
+  getAllOrgs = () => {
+    getAllOrgs()
+      .then(orgs => {
+        console.log(orgs)
+        this.setState({orgs: orgs, numberOfOrgs: orgs.length})
       });
   }
 
   onChangeForm = (e) => {
       let org = this.state.org
       if (e.target.name === 'inputOrg') {
-          org.firstName = e.target.value;
+          org.name = e.target.value;
       } else if (e.target.name === 'inputToken') {
-          org.lastName = e.target.value;
+          org.token = e.target.value;
       }
+      console.log("ORG: ",org)
       this.setState({org})
   }
 
@@ -47,7 +47,7 @@ class App extends Component {
       <div className="App">
         <Header></Header>
         <ScanOrg 
-          user={this.state.user}
+          org={this.state.org}
           onChangeForm={this.onChangeForm}
           scanOrg={this.scanOrg}
           >

@@ -1,11 +1,12 @@
-export async function getAllUsers() {
+export async function getAllOrgs() {
 
-    const response = await fetch('/api/users');
+    const response = await fetch('/api/org/list');
     return await response.json();
 }
 
 export async function scanOrg(data) {
-    const response = await fetch(`/api/scan`, {
+    console.log("DATA: ", data);
+    const response = await fetch(`/api/org/scan`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({org: data})

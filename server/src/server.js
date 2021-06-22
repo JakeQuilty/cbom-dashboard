@@ -1,5 +1,4 @@
 const { Octokit } = require("@octokit/rest");
-const mysql = require('mysql');
 const express = require('express');
 const path = require('path');
 const app = express(),
@@ -18,32 +17,45 @@ app.get('/api/users', (req, res) => {
   res.json(users);
 });
 
-app.post('/api/scan', (req, res) => {
-  const org = req.body.org;
-  console.log('Creating Org:::::', org);
-  //create new org entry in db
-  let name = org.name;
-  let token = org.token;
-  curr = new Organization(name, token);
-  curr.createDBEntry();
+app.post('/api/org/new'), (req,res) => {
+  const orgData = req.body.org;
+  console.log('Creating Org:::::', orgData.name);
+  var name = orgData.name;
+  var token = orgData.token;
+  var org = new Organization(name, token);
 
-  console.log('Scanning Org:::::', org);
+  // validate token and org
+  var tokenVal = await org.validateToken();
+  if (!tokenVal){
+    console.log("User sent an invalid token");
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/406
+    res.status(406).send("invalid token");
+
+  }
+  var orgVal = await org.validateOrg();
+  if (!orgVal){
+      console.log("User sent an invalid org");
+      res.status(406).send("invalid org");
+  }
+
+  //check if org already exists in db
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/409
+  // res.status(409);
+
+  //create new org entry in db
+  org.initializeDB();
+  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/201
+  res.status(201);
+}
+
+app.post('/api/org/scan', (req, res) => {
+
+  console.log('Scanning Org:::::', org.name);
   //scan org
   
-  res.json("user added");
+  res.json("org scanned");
 });
 
 app.listen(port, () => {
     console.log(`Server listening on the port::${port}`);
 });
-
-async function scanOrg(org){
-  const octokit = new Octokit({
-    auth: 'token ' + process.env.GITHUB_API_TOKEN
-  });
-
-async function createOrg(org){
-
-}
-
-}

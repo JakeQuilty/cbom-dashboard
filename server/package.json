@@ -23,7 +23,7 @@
     "bundle": "^2.1.0",
     "express": "^4.17.1",
     "http-proxy-middleware": "^2.0.0",
-    "mysql": "^2.18.1",
+    "mysql2": "^2.2.5",
     "octokit": "^1.0.6"
   },
   "devDependencies": {

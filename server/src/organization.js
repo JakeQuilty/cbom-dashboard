@@ -1,12 +1,23 @@
 const { Octokit } = require("@octokit/rest");
-const mysql = require('mysql');
-const Database = require('./database.js');
+const db = require('./database.js');
+
+const dbCol = {
+    org_id: "org_id",
+    gh_id: "gh_id",
+    org_name: "org_name",
+    auth_token: "auth_token",
+    user_id: "user_id"
+};
 
 class Organization {
     constructor(orgName, oauthToken){
         this.name = orgName;
         this.token = oauthToken;
         this.dbtable = "organization";
+    }
+
+    getRandomId(){
+        return Math.floor(Math.random() * 10000000);
     }
 
     get getName(){
@@ -30,69 +41,78 @@ class Organization {
         return this.githubID;
     }
 
-    //401 if bad
-    validateToken(){
-        const result = new Octokit({
+    async validateToken(){
+        const octokit = new Octokit({
             auth: `token ${this.token}`
           });
+        let result = await octokit.rest.users.getAuthenticated();
         if (result.status == 200){
-            console.log('user token verified');
+            console.log(`user:${result.data.login} token verified`);
             return true;
         }
-        else{
+        else{ //401 if bad
             console.log(`Unable to validate OAuth Token is valid`);
             return false;
         }
     }
 
-    validateOrg(){
+    async validateOrg(){
         const octokit = new Octokit({
             auth: `token ${this.token}`
           });
-        octokit.rest.orgs.get({
+        let result = await octokit.rest.orgs.get({
             org: this.name
-        }).then(response => {
+        });
+        if (result.status == 200){
             console.log(`org:${this.name} verified`);
             // get the org's github given id
-            this.githubID = response.data.id;
+            this.githubID = result.data.id;
             return true;
-        }).catch(error => {
+        }
+        else{
             console.log(`Unable to validate org:${this.name} exists`);
             return false;
-        });
+        }
     }
 
-    createDBEntry(){
-        // if either token or org is not valid, throw err instead of putting in db
-        let tokenVal = this.validateToken();
-        let orgVal = this.validateOrg();
-        if (!tokenVal || !orgVal){
-            console.log('cannot create db entry for broken data');
-            throw new Error("invalid data");
-        }
-        var db = new Database().connect(
-        ).catch(error => {
-            console.log('unable to connect to db');
-            throw error;
-        });
+    checkDuplicate(){
+        var sql = `SELECT 1 FROM ${this.dbtable} WHERE ${dbCol.gh_id} = ${this.gh_id}`;
+        db.query(sql,)
+    }
 
-        this.id = db.getRandomId;
+    async initializeDB(){
+        this.id = this.getRandomId();
+        
         // Here we are putting user inputs into a SQL command.
         // I think we are okay, because we validate they are GH orgs and tokens first.
         // need to figure out way to encrypt and decrypt token
-        var sql = `INSERT INTO ${this.dbtable} VALUES (${this.id}, ${this.githubID}, ${this.name}, ${this.token})`;
-
-        db.query(sql, function (err, result) {
+        // this needs work
+        var sql = `INSERT INTO ${this.dbtable} (${dbCol.org_id}, ${dbCol.gh_id}, ${dbCol.org_name}, ${dbCol.auth_token}) 
+        VALUES (${this.id}, ${this.githubID}, '${this.name}', '${this.token}')`;
+        db.query(sql, function(err, result){
             if (err){
+                /*
+                Need to handle this error gracefully, by spinning up a new key and trying again.
+                
+                 Error: Error: Duplicate entry '111111' for key 'organization.PRIMARY'
+backend_1   |     at Query.onResult (/cbom-maker/src/organization.js:107:23)
+backend_1   |     at Query.execute (/cbom-maker/node_modules/mysql2/lib/commands/command.js:30:14)
+backend_1   |     at Connection.handlePacket (/cbom-maker/node_modules/mysql2/lib/connection.js:425:32)
+backend_1   |     at PacketParser.onPacket (/cbom-maker/node_modules/mysql2/lib/connection.js:75:12)
+backend_1   |     at PacketParser.executeStart (/cbom-maker/node_modules/mysql2/lib/packet_parser.js:75:16)
+backend_1   |     at Socket.<anonymous> (/cbom-maker/node_modules/mysql2/lib/connection.js:82:25)
+backend_1   |     at Socket.emit (node:events:394:28)
+backend_1   |     at addChunk (node:internal/streams/readable:312:12)
+backend_1   |     at readableAddChunk (node:internal/streams/readable:287:9)
+backend_1   |     at Socket.Readable.push (node:internal/streams/readable:226:10)
+*/
                 console.log('unable to insert into db');
                 throw new Error(err);
             }
             else{
-                console.log(result.message);
+                console.log(`DEBUG: db entry result: ${result}`);
             }
         });
-
-
         
     }
 }
