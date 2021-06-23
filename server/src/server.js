@@ -34,25 +34,28 @@ app.post('/api/org/new', async (req,res) => {
     res.status(401).json("invalid token");
   }
   else if (!orgVal){
-      console.log("User sent an invalid org");
-      res.status(401).json("invalid organization");
+    console.log("User sent an invalid org");
+    res.status(404).json("invalid organization");
   }
+  else {
+    //check if org already exists in db
+    let ghID = await org.getGithubID();
+    let dup = await org.isDuplicate(ghID);
+    if (dup){
+      console.log("User sent a duplicate org");
+      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/409
+      res.status(409).json("organization already exists in database");
+    }
+    else {
+      await org.initializeDB();
 
-  //check if org already exists in db
-  let ghID = await org.getGithubID();
-  if (await org.isDuplicate(ghID)){
-    console.log("User sent a duplicate org");
-    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/409
-    res.status(409).json("organization already exists in database");
+      let data = {
+        githubid: ghID
+      }
+      // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/201
+      res.status(201).json(data);
+    }
   }
-
-  await org.initializeDB();
-
-  let data = {
-    githubid: ghID
-  }
-  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/201
-  res.status(201).json(data);
 });
 
 app.post('/api/org/scan', (req, res) => {

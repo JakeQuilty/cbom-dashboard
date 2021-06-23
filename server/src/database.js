@@ -11,6 +11,7 @@ const dbConfig = {
 }
 
 // https://stackoverflow.com/questions/18496540/node-js-mysql-connection-pooling
-const pool = mysql.createPool(dbConfig)
+const pool = mysql.createPool(dbConfig);
+const promisePool = pool.promise();
 
-module.exports = pool;
+module.exports = promisePool;
