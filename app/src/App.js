@@ -2,25 +2,34 @@ import React, { Component } from 'react';
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './App.css';
 import { Header } from './components/Header'
-import { Users } from './components/Users'
-import ScanOrg from './components/ScanOrg'
-import { getAllOrgs, scanOrg } from './services/OrgService'
+import { Orgs } from './components/Orgs'
+import AddOrg from './components/AddOrg'
+import { getAllOrgs, addOrg, scanOrg } from './services/OrgService'
+import ScanOrg from './components/ScanOrg';
 
 class App extends Component {
 
   state = {
     org: {},
+    toScanOrg: {},
     // leaving these here to avoid errors while im converting
     orgs: [],
     numberOfOrgs: 0
   }
 
-  scanOrg = (e) => {
-      scanOrg(this.state.org)
+  addOrg = (e) => {
+      addOrg(this.state.org)
         .then(response => {
           console.log(response);
       });
   }
+
+  scanOrg = (e) => {
+    scanOrg(this.state.toScanOrg)
+      .then(response => {
+        console.log(response);
+    });
+}
 
   getAllOrgs = () => {
     getAllOrgs()
@@ -41,21 +50,36 @@ class App extends Component {
       this.setState({org})
   }
 
+  onChangeFormScan = (e) => {
+    let toScanOrg = this.state.toScanOrg
+    if (e.target.name === 'inputOrgScan') {
+        toScanOrg.name = e.target.value;
+    }
+    console.log("SCAN ORG: ",toScanOrg)
+    this.setState({toScanOrg})
+}
+
   render() {
     
     return (
       <div className="App">
         <Header></Header>
-        <ScanOrg 
+        <AddOrg 
           org={this.state.org}
           onChangeForm={this.onChangeForm}
-          scanOrg={this.scanOrg}
+          addOrg={this.addOrg}
           >
+        </AddOrg>
+        <ScanOrg
+          org={this.state.toScanOrg}
+          onChangeForm={this.onChangeFormScan}
+          scanOrg={this.scanOrg}
+        >
         </ScanOrg>
         <div className="row mrgnbtm">
-          <Users 
-            users={this.state.users}>
-          </Users>
+          <Orgs 
+            orgs={this.state.orgs}>
+          </Orgs>
         </div>
       </div>
     );

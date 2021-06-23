@@ -14,6 +14,7 @@ class Organization {
         this.name = orgName;
         this.token = oauthToken;
         this.dbtable = "organization";
+        this.githubID;
     }
 
     getRandomId(){
@@ -37,50 +38,110 @@ class Organization {
         // maybe db?
     }
 
-    get getGithubID(){
-        return this.githubID;
+    // returns undefined if ID not set and unable to retrieve it
+    async getGithubID(){
+        if (this.githubID === undefined){
+            console.log(`org:${this.name} GitHub ID undefined... Getting new one`);
+            const octokit = new Octokit({
+                auth: `token ${this.token}`
+              });
+            let result = await octokit.rest.orgs.get({
+                org: this.name
+            });
+            if (result.status == 200){
+                console.log(`org:${this.name} GitHub ID retrieval: success`);
+                this.githubID = result.data.id;
+                return this.githubID;
+            }
+            else{
+                console.log(`org:${this.name} GitHub ID retrieval: fail`);
+                return undefined;
+            }
+        }else{
+            return this.githubID;
+        }
     }
 
     async validateToken(){
-        const octokit = new Octokit({
-            auth: `token ${this.token}`
-          });
-        let result = await octokit.rest.users.getAuthenticated();
-        if (result.status == 200){
-            console.log(`user:${result.data.login} token verified`);
-            return true;
-        }
-        else{ //401 if bad
-            console.log(`Unable to validate OAuth Token is valid`);
-            return false;
+        console.log("Validating token...")
+        try{
+            const octokit = new Octokit({
+                auth: `token ${this.token}`
+              }); 
+            let result = await octokit.rest.users.getAuthenticated();
+            if (result.status == 200){
+                console.log(`user:${result.data.login} token verified`);
+                return true;
+            } else {
+                console.log("Unknown result");
+                console.log(result);
+                return false;
+            }
+        }catch (error) {
+            if (error.status == 401) {
+                console.log(`Unable to validate OAuth Token is valid`);
+                return false;
+            } else {
+                console.log(`Error validating token`);
+                throw error;
+              }
         }
     }
 
     async validateOrg(){
-        const octokit = new Octokit({
-            auth: `token ${this.token}`
-          });
-        let result = await octokit.rest.orgs.get({
-            org: this.name
-        });
-        if (result.status == 200){
-            console.log(`org:${this.name} verified`);
-            // get the org's github given id
-            this.githubID = result.data.id;
-            return true;
+        try{
+            const octokit = new Octokit({
+                auth: `token ${this.token}`
+              });
+            let result = await octokit.rest.orgs.get({
+                org: this.name
+            });
+            if (result.status == 200){
+                console.log(`org:${this.name} verified`);
+                return true;
+            }
+            else{
+                console.log("Unknown result");
+                console.log(result);
+                return false;
+            }
+        } catch (error) {
+            if (error.status == 404) {
+                console.log(`Unable to validate org:${this.name} exists`);
+                return false;
+            } else {
+                console.log(`Error validating org:${this.name}`);
+                throw error;
+            }
         }
-        else{
-            console.log(`Unable to validate org:${this.name} exists`);
-            return false;
-        }
+        
     }
 
-    checkDuplicate(){
-        var sql = `SELECT 1 FROM ${this.dbtable} WHERE ${dbCol.gh_id} = ${this.gh_id}`;
-        db.query(sql,)
+    // true - if there is another org with same gh_id in database
+    // the ghub id is unique, so this is a good way to tell
+    async isDuplicate(ghID){
+        console.log(`Checking db for duplicate org: ${this.name}:${ghID}`);
+        var sql = `SELECT 1 FROM ${this.dbtable} WHERE ${dbCol.gh_id} = ${ghID}`;
+        db.query(sql, function(err, result){
+            if (err) throw new Error(err);
+            else {
+                console.log(`DEBUG: RESULT`);
+                console.log(result);
+                // Object.keys(result).forEach(function(key){
+                //     var row = result[key];
+                //     console.log(row.name);
+                // });
+                // result.length > 0 means a list of results were returned
+                // from db meaning it's a duplicate
+                let len = result.length
+                console.log(Boolean(len > 0));
+                return (Boolean(len > 0));
+            }
+        });
     }
 
     async initializeDB(){
+        console.log(`Adding org: ${this.name}:${await this.getGithubID()} to database...`)
         this.id = this.getRandomId();
         
         // Here we are putting user inputs into a SQL command.
@@ -88,29 +149,12 @@ class Organization {
         // need to figure out way to encrypt and decrypt token
         // this needs work
         var sql = `INSERT INTO ${this.dbtable} (${dbCol.org_id}, ${dbCol.gh_id}, ${dbCol.org_name}, ${dbCol.auth_token}) 
-        VALUES (${this.id}, ${this.githubID}, '${this.name}', '${this.token}')`;
+        VALUES (${this.id}, ${await this.getGithubID()}, '${this.name}', '${this.token}')`;
         db.query(sql, function(err, result){
-            if (err){
-                /*
-                Need to handle this error gracefully, by spinning up a new key and trying again.
-                
-                 Error: Error: Duplicate entry '111111' for key 'organization.PRIMARY'
-backend_1   |     at Query.onResult (/cbom-maker/src/organization.js:107:23)
-backend_1   |     at Query.execute (/cbom-maker/node_modules/mysql2/lib/commands/command.js:30:14)
-backend_1   |     at Connection.handlePacket (/cbom-maker/node_modules/mysql2/lib/connection.js:425:32)
-backend_1   |     at PacketParser.onPacket (/cbom-maker/node_modules/mysql2/lib/connection.js:75:12)
-backend_1   |     at PacketParser.executeStart (/cbom-maker/node_modules/mysql2/lib/packet_parser.js:75:16)
-backend_1   |     at Socket.<anonymous> (/cbom-maker/node_modules/mysql2/lib/connection.js:82:25)
-backend_1   |     at Socket.emit (node:events:394:28)
-backend_1   |     at addChunk (node:internal/streams/readable:312:12)
-backend_1   |     at readableAddChunk (node:internal/streams/readable:287:9)
-backend_1   |     at Socket.Readable.push (node:internal/streams/readable:226:10)
-*/
-                console.log('unable to insert into db');
-                throw new Error(err);
-            }
+            if (err) throw new Error(err);
             else{
-                console.log(`DEBUG: db entry result: ${result}`);
+                console.log(`DEBUG: db entry result\n${result}`);
+                console.log(result);
             }
         });
         

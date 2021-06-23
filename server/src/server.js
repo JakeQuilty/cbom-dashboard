@@ -17,40 +17,47 @@ app.get('/api/users', (req, res) => {
   res.json(users);
 });
 
-app.post('/api/org/new'), (req,res) => {
+app.post('/api/org/new', async (req,res) => {
   const orgData = req.body.org;
   console.log('Creating Org:::::', orgData.name);
-  var name = orgData.name;
-  var token = orgData.token;
-  var org = new Organization(name, token);
+  let name = orgData.name;
+  let token = orgData.token;
+  let org = new Organization(name, token);
 
   // validate token and org
-  var tokenVal = await org.validateToken();
+  let tokenVal = await org.validateToken();
+  let orgVal = await org.validateOrg();
+
   if (!tokenVal){
     console.log("User sent an invalid token");
-    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/406
-    res.status(406).send("invalid token");
-
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
+    res.status(401).json("invalid token");
   }
-  var orgVal = await org.validateOrg();
-  if (!orgVal){
+  else if (!orgVal){
       console.log("User sent an invalid org");
-      res.status(406).send("invalid org");
+      res.status(401).json("invalid organization");
   }
 
   //check if org already exists in db
-  // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/409
-  // res.status(409);
+  let ghID = await org.getGithubID();
+  if (await org.isDuplicate(ghID)){
+    console.log("User sent a duplicate org");
+    // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/409
+    res.status(409).json("organization already exists in database");
+  }
 
-  //create new org entry in db
-  org.initializeDB();
+  await org.initializeDB();
+
+  let data = {
+    githubid: ghID
+  }
   // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/201
-  res.status(201);
-}
+  res.status(201).json(data);
+});
 
 app.post('/api/org/scan', (req, res) => {
-
-  console.log('Scanning Org:::::', org.name);
+  const orgData = req.body.org;
+  console.log('Scanning Org:::::', orgData.name);
   //scan org
   
   res.json("org scanned");

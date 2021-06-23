@@ -1,16 +1,3 @@
--- CREATE TABLE users
--- (
---     user_id INT NOT NULL,
---     user_name VARCHAR(16) NOT NULL,
---     -- MD5 Hash length
---     user_password VARCHAR(32) NOT NULL,
---     first_name VARCHAR(16),
---     last_name VARCHAR(16),
---     account_priv INT(1) NOT NULL,
-
---     PRIMARY KEY (user_id)
--- );
-
 CREATE TABLE organization
 (
     org_id INT NOT NULL,
@@ -18,9 +5,8 @@ CREATE TABLE organization
     org_name VARCHAR(255) NOT NULL,
     -- need to  figure out encryption type for this
     auth_token VARCHAR(255) NOT NULL,
-    -- user_id INT,
 
-    PRIMARY KEY (org_id),
+    PRIMARY KEY (org_id)
     -- FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE
 );
 

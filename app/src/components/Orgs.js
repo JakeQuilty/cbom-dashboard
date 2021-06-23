@@ -1,9 +1,9 @@
 import React from 'react'
 
-export const Users = ({users}) => {
+export const Orgs = ({orgs}) => {
 
-    console.log('users length:::', users.length)
-    if (users.length === 0) return null
+    console.log('orgs length:::', orgs.length)
+    if (orgs.length === 0) return null
 
     const UserRow = (user,index) => {
 
@@ -17,11 +17,11 @@ export const Users = ({users}) => {
           )
     }
 
-    const userTable = users.map((user,index) => UserRow(user,index))
+    const userTable = orgs.map((user,index) => UserRow(user,index))
 
     return(
         <div className="container">
-            <h2>Users</h2>
+            <h2>Orgs</h2>
             <table className="table table-bordered">
                 <thead>
                 <tr>
