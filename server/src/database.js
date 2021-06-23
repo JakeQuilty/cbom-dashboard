@@ -10,7 +10,6 @@ const dbConfig = {
     queueLimit:0
 }
 
-// https://stackoverflow.com/questions/18496540/node-js-mysql-connection-pooling
 const pool = mysql.createPool(dbConfig);
 const promisePool = pool.promise();
 

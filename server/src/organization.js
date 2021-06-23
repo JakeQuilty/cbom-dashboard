@@ -187,7 +187,7 @@ class Organization {
         } catch (error) {
             throw new Error(error);
         }
-        console.log(`DEBUG: db entry result\n${result}`);
+        console.log(`DEBUG: db entry result`);
         console.log(result);
             
         // db.query(sql, function(err, result){
@@ -198,6 +198,17 @@ class Organization {
         //     }
         // });
         
+    }
+
+    async getAllRepos(){
+
+    }
+
+    async scanOrg(){
+        // get all repos
+        // create a repo object for each repo
+        // tell each repo object to scan itself and create db entries as needed
+        // parser class?
     }
 }
 
