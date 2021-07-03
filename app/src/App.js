@@ -4,13 +4,15 @@ import './App.css';
 import { Header } from './components/Header'
 import { Orgs } from './components/Orgs'
 import AddOrg from './components/AddOrg'
-import { getAllOrgs, addOrg, scanOrg } from './services/OrgService'
+import { getAllOrgs, addOrg, scanOrg } from './api/orgApi'
 import ScanOrg from './components/ScanOrg';
 
 class App extends Component {
 
   state = {
-    org: {},
+    org: {
+      userID: '1',  //////////////////////// STATIC DEFAULT USER ROOT
+    },
     toScanOrg: {},
     // leaving these here to avoid errors while im converting
     orgs: [],
@@ -50,7 +52,7 @@ class App extends Component {
       if (e.target.name === 'inputOrg') {
           org.name = e.target.value;
       } else if (e.target.name === 'inputToken') {
-          org.token = e.target.value;
+          org.ghAuthToken = e.target.value;
       }
       console.log("ORG: ",org)
       this.setState({org})
