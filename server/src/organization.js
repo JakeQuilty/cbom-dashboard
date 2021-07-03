@@ -1,7 +1,8 @@
 const { Octokit } = require("@octokit/rest");
 const db = require('./database.js');
+const extend = require('extend');
 
-const dbCol = {
+const dbColumn = {
     org_id: "org_id",
     gh_id: "gh_id",
     org_name: "org_name",
@@ -10,16 +11,24 @@ const dbCol = {
 };
 
 class Organization {
-    constructor(orgName, oauthToken){
-        this.name = orgName;
-        this.token = oauthToken;
-        this.dbtable = "organization";
-        this.githubID;
-    }
-    // constructor that takes gh_id as only input and then pulls all other data from db
+    constructor(params){
+        // default values
+        var config = extend({
+            name: undefined,
+            token: undefined,
+            dbtable: "organization",
+            githubID: undefined,
+            userID: undefined,
+        }, params);
 
-    getRandomId(){
-        return Math.floor(Math.random() * 10000000);
+        this.name = config.name;
+        this.token = config.token;
+        this.dbtable = config.dbtable;
+        this.githubID = config.githubID;
+        this.userID = config.userID;
+
+        // a value existsInDB that defaults as false, but if it's true grabs all data from db
+        // seperate function for grabbing from db
     }
 
     get getName(){
@@ -76,31 +85,31 @@ class Organization {
         }
     }
 
-    async validateToken(){
-        console.log("Validating token...")
-        try{
-            const octokit = new Octokit({
-                auth: `token ${this.token}`
-              }); 
-            let result = await octokit.rest.users.getAuthenticated();
-            if (result.status == 200){
-                console.log(`user:${result.data.login} token verified`);
-                return true;
-            } else {
-                console.log("Unknown result");
-                console.log(result);
-                return false;
-            }
-        }catch (error) {
-            if (error.status == 401) {
-                console.log(`Unable to validate OAuth Token is valid`);
-                return false;
-            } else {
-                console.log(`Error validating token`);
-                throw error;
-              }
-        }
-    }
+    // async validateToken(authToken){
+    //     console.log("Validating token...");
+    //     try{
+    //         const octokit = new Octokit({
+    //             auth: `token ${authToken}`
+    //           }); 
+    //         let result = await octokit.rest.users.getAuthenticated();
+    //         if (result.status == 200){
+    //             console.log(`user:${result.data.login} token verified`);
+    //             return true;
+    //         } else {
+    //             console.log("Unknown result");
+    //             console.log(result);
+    //             return false;
+    //         }
+    //     }catch (error) {
+    //         if (error.status == 401) {
+    //             console.log(`Unable to validate OAuth Token is valid`);
+    //             return false;
+    //         } else {
+    //             console.log(`Error validating token`);
+    //             throw error;
+    //           }
+    //     }
+    // }
 
     async validateOrg(){
         try{
@@ -131,73 +140,114 @@ class Organization {
         
     }
 
-    // true - if there is another org with same gh_id in database
-    // the ghub id is unique, so this is a good way to tell
-    async isDuplicate(ghID){
-        console.log(`Checking db for duplicate org: ${this.name}:${ghID}`);
-        var sql = `SELECT 1 FROM ${this.dbtable} WHERE ${dbCol.gh_id} = ${ghID}`;
+    /*
+     true - if there is another org owned by current user with same name
+     false - not duplicate
+    */
+    async existsInDB(userID){
+        console.log(`Checking if org: ${this.name} exists in db`);
+        var sql = `SELECT 1 FROM ${this.dbtable} WHERE ${dbColumn.org_name} = '${this.name}' AND ${dbColumn.user_id} = '${userID}' LIMIT 1;`;
 
         try {
             var result = await db.query(sql);
         } catch (error) {
-            throw new Error(error);
+            console.log("ERROR: existsInDB failed on query");
+            throw error;
         }
-        console.log(`DEBUG: RESULT`);
-        console.log(result);
-        // Object.keys(result).forEach(function(key){
-        //     var row = result[key];
-        //     console.log(row.name);
-        // });
+        // console.log(`DEBUG: existsInDB Result`);
+        // console.log(result);
+
         // result.length > 0 means a list of results were returned
         // from db meaning it's a duplicate
         let len = result[0].length
+        console.log(len);
         return (Boolean(len > 0));
-
-        // db.query(sql, function(err, result){
-        //     if (err) throw new Error(err);
-        //     else {
-        //         console.log(`DEBUG: RESULT`);
-        //         console.log(result);
-        //         // Object.keys(result).forEach(function(key){
-        //         //     var row = result[key];
-        //         //     console.log(row.name);
-        //         // });
-        //         // result.length > 0 means a list of results were returned
-        //         // from db meaning it's a duplicate
-        //         let len = result.length
-        //         console.log(Boolean(len > 0));
-        //         return (Boolean(len > 0));
-        //     }
-        // });
     }
 
     async initializeDB(){
         console.log(`Adding org: ${this.name}:${await this.getGithubID()} to database...`)
-        this.id = this.getRandomId();
+        //this.id = this.getRandomId();
+        try{
+            this.githubID = await this.getGithubID();
+        } catch (error) {
+            console.log("ERROR: failed to get GitHub ID while making new DB entry\n", error);
+            throw error;
+        }
         
         // Here we are putting user inputs into a SQL command.
         // I think we are okay, because we validate they are GH orgs and tokens first.
         // need to figure out way to encrypt and decrypt token
         // this needs work
-        var sql = `INSERT INTO ${this.dbtable} (${dbCol.org_id}, ${dbCol.gh_id}, ${dbCol.org_name}, ${dbCol.auth_token}) 
-        VALUES (${this.id}, ${await this.getGithubID()}, '${this.name}', '${this.token}')`;
+        var sql = `INSERT INTO ${this.dbtable} (${dbColumn.gh_id}, 
+        ${dbColumn.org_name}, ${dbColumn.auth_token}, ${dbColumn.user_id}) 
+        VALUES (${this.githubID}, '${this.name}', '${this.token}', ${this.userID})`;
         
         try {
             var result = await db.query(sql);
         } catch (error) {
-            throw new Error(error);
+            console.log(`ERROR: query to make new DB entry for org:${this.name} failed\n`, error);
+            throw error;
         }
-        console.log(`DEBUG: db entry result\n${result}`);
-        console.log(result);
-            
-        // db.query(sql, function(err, result){
-        //     if (err) throw new Error(err);
-        //     else{
-        //         console.log(`DEBUG: db entry result\n${result}`);
-        //         console.log(result);
-        //     }
-        // });
+        // console.log(`DEBUG: db entry result`);
+        // console.log(result);
+    }
+
+    // requires userID and name to be set
+    async getFromDatabase(){
+        console.log("Getting org data from db");
+        if (this.userID === undefined){
+            throw new Error ("Attemping to retrieve org from database but userID is not set");
+        }
+
+        if (!this.existsInDB(this.userID)){
+            throw new Error ("Attempted to retrieve org that does not exist in database");
+        }
+
+        let sql = `SELECT * FROM ${this.dbtable} WHERE ${dbColumn.org_name} = '${this.name}' AND ${dbColumn.user_id} = '${this.userID}'`;
         
+        try {
+            var result = await db.query(sql);
+        } catch (error) {
+            console.log("ERROR: getOrgFromDatabase failed", error);
+            throw error;
+        }
+
+        /////////////////////////////////////
+        console.log(result);
+        result.forEach(function(currentValue, index, arr){
+            console.log(`currVal: ${currentValue} ind: ${index} arr: ${arr}`);
+        })
+        ////////////////////////////////
+
+        let row = result[0].TextRow;
+        console.log(row);
+    }
+
+    async getReposList(){
+        var repos;
+        const octokit = new Octokit({
+            auth: `token ${this.token}`
+          });
+        for await (const response of octokit.paginate(octokit.rest.repos.listForOrg({
+            org: this.name,
+            per_page: 100
+        })
+        )) {
+            response.forEach(element => {
+                repos.append(element.name)
+            });
+        }
+        return repos;
+    }
+
+    async scanOrg(){
+        // get all repos
+        const repos = getReposList();
+        console.log(repos);
+        // create a repo object for each repo
+        // tell each repo object to scan itself and create db entries as needed
+        //     octokit.rest.repos.getContent
+        // parser class?
     }
 }
 
