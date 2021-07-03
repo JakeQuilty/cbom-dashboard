@@ -31,15 +31,6 @@ class Organization {
         // seperate function for grabbing from db
     }
 
-    // returns a string of random number from 00000000-99999999
-    // getRandomId(){
-    //     let size = 8;
-    //     let randNum = Math.floor(Math.random() * 100000000);
-    //     let id = randNum.toString();
-    //     while (id.len < size) id = "0" + id;
-    //     return id;
-    // }
-
     get getName(){
         return this.name;
     }
@@ -94,31 +85,31 @@ class Organization {
         }
     }
 
-    async validateToken(){
-        console.log("Validating token...")
-        try{
-            const octokit = new Octokit({
-                auth: `token ${this.token}`
-              }); 
-            let result = await octokit.rest.users.getAuthenticated();
-            if (result.status == 200){
-                console.log(`user:${result.data.login} token verified`);
-                return true;
-            } else {
-                console.log("Unknown result");
-                console.log(result);
-                return false;
-            }
-        }catch (error) {
-            if (error.status == 401) {
-                console.log(`Unable to validate OAuth Token is valid`);
-                return false;
-            } else {
-                console.log(`Error validating token`);
-                throw error;
-              }
-        }
-    }
+    // async validateToken(authToken){
+    //     console.log("Validating token...");
+    //     try{
+    //         const octokit = new Octokit({
+    //             auth: `token ${authToken}`
+    //           }); 
+    //         let result = await octokit.rest.users.getAuthenticated();
+    //         if (result.status == 200){
+    //             console.log(`user:${result.data.login} token verified`);
+    //             return true;
+    //         } else {
+    //             console.log("Unknown result");
+    //             console.log(result);
+    //             return false;
+    //         }
+    //     }catch (error) {
+    //         if (error.status == 401) {
+    //             console.log(`Unable to validate OAuth Token is valid`);
+    //             return false;
+    //         } else {
+    //             console.log(`Error validating token`);
+    //             throw error;
+    //           }
+    //     }
+    // }
 
     async validateOrg(){
         try{
@@ -153,18 +144,18 @@ class Organization {
      true - if there is another org owned by current user with same name
      false - not duplicate
     */
-    async isDuplicate(userID){
-        console.log(`Checking db for duplicate org: ${this.name}`);
+    async existsInDB(userID){
+        console.log(`Checking if org: ${this.name} exists in db`);
         var sql = `SELECT 1 FROM ${this.dbtable} WHERE ${dbColumn.org_name} = '${this.name}' AND ${dbColumn.user_id} = '${userID}' LIMIT 1;`;
 
-        console.log(sql);
         try {
             var result = await db.query(sql);
         } catch (error) {
-            throw new Error(error);
+            console.log("ERROR: existsInDB failed on query");
+            throw error;
         }
-        console.log(`DEBUG: isDuplicate Result`);
-        console.log(result);
+        // console.log(`DEBUG: existsInDB Result`);
+        // console.log(result);
 
         // result.length > 0 means a list of results were returned
         // from db meaning it's a duplicate
@@ -197,8 +188,39 @@ class Organization {
             console.log(`ERROR: query to make new DB entry for org:${this.name} failed\n`, error);
             throw error;
         }
-        console.log(`DEBUG: db entry result`);
+        // console.log(`DEBUG: db entry result`);
+        // console.log(result);
+    }
+
+    // requires userID and name to be set
+    async getFromDatabase(){
+        console.log("Getting org data from db");
+        if (this.userID === undefined){
+            throw new Error ("Attemping to retrieve org from database but userID is not set");
+        }
+
+        if (!this.existsInDB(this.userID)){
+            throw new Error ("Attempted to retrieve org that does not exist in database");
+        }
+
+        let sql = `SELECT * FROM ${this.dbtable} WHERE ${dbColumn.org_name} = '${this.name}' AND ${dbColumn.user_id} = '${this.userID}'`;
+        
+        try {
+            var result = await db.query(sql);
+        } catch (error) {
+            console.log("ERROR: getOrgFromDatabase failed", error);
+            throw error;
+        }
+
+        /////////////////////////////////////
         console.log(result);
+        result.forEach(function(currentValue, index, arr){
+            console.log(`currVal: ${currentValue} ind: ${index} arr: ${arr}`);
+        })
+        ////////////////////////////////
+
+        let row = result[0].TextRow;
+        console.log(row);
     }
 
     async getReposList(){

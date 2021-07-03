@@ -13,7 +13,9 @@ class App extends Component {
     org: {
       userID: '1',  //////////////////////// STATIC DEFAULT USER ROOT
     },
-    toScanOrg: {},
+    toScanOrg: {
+      userID: '1',
+    },
     // leaving these here to avoid errors while im converting
     orgs: [],
     numberOfOrgs: 0

@@ -1,4 +1,3 @@
-const { Octokit } = require("@octokit/rest");
 const express = require('express');
 const path = require('path');
 const app = express(),
@@ -10,7 +9,7 @@ app.use(bodyParser.json());
 app.use(express.static(path.join(__dirname, '../../app/build')));
 
 // NOT DONE - PLACE HOLDER RETURNS ROOT
-app.get('/api/login', (req, res) => {
+app.get('/api/user/login', (req, res) => {
   console.log('USING A NOT IMPLEMENTED LOGIN ENDPOINT');
   console.log('RETURNING DEFAULT VALUES');
   let username = 'root';
@@ -52,7 +51,7 @@ app.post('/api/org/new', async (req,res) => {
 
   try{
     // validate token and org
-    let tokenVal = await org.validateToken();
+    let tokenVal = await org.validateToken(ghAuthToken);
     if (!tokenVal){
       console.log("User sent an invalid token");
       // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
@@ -66,7 +65,7 @@ app.post('/api/org/new', async (req,res) => {
 
     //check if org already exists in db
     let ghID = await org.getGithubID();
-    let dup = await org.isDuplicate(userID);
+    let dup = await org.existsInDB(userID);
     if (dup){
       console.log("User sent a duplicate org");
       // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/409
@@ -94,7 +93,12 @@ app.post('/api/org/scan', (req, res) => {
 
   let name = orgData.name;
   let userID = orgData.userID;
-  let org = new Organization(name, userID);
+  let orgConfig = {
+    name: name,
+    userID: userID
+  }
+  let org = new Organization(orgConfig);
+  org.getFromDatabase();
   
   
   res.json("org scanned");
