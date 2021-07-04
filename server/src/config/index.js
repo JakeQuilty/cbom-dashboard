@@ -1,6 +1,6 @@
 process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
-export default {
+module.exports = {
     port: 3080, //parseInt(process.env.PORT, 10)
 
     //https://www.npmjs.com/package/winston#logging-levels
@@ -15,6 +15,17 @@ export default {
         database: process.env.DB_NAME,
         waitForConnections: true,
         connectionLimit: 10,
-        queueLimit:0,
+        queueLimit: 0,
     },
+
+    dbTables: {
+        organization:{
+            name: "organization",
+            org_id: "org_id",
+            gh_id: "gh_id",
+            org_name: "org_name",
+            auth_token: "auth_token",
+            user_id: "user_id"
+        }
+    }
 }

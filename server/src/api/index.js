@@ -1,7 +1,7 @@
-import { Router } from 'express';
-import org from './routes/org';
+const Router = require('express');
+const org = require('./routes/org');
 
-export default () => {
+module.exports = () => {
     const app = Router();
     org(app);
 
