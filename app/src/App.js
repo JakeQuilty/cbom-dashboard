@@ -22,16 +22,16 @@ class App extends Component {
   }
 
   addOrg = (e) => {
-      addOrg(this.state.org)
-        .then(response => {
-          // this isn't working bc .json() just gives the body
-          // need to use a then to async get the body after getting the status
-          // https://developer.mozilla.org/en-US/docs/Web/API/Response
-          if (response.status !== 201){
-            alert(response);
-          }
-          console.log(response);
-      }); 
+    addOrg(this.state.org)
+      .then(response => {
+        // this isn't working bc .json() just gives the body
+        // need to use a then to async get the body after getting the status
+        // https://developer.mozilla.org/en-US/docs/Web/API/Response
+        if (response.status !== 201){
+          alert(response);
+        }
+        console.log(response);
+    }); 
   }
 
   scanOrg = (e) => {
