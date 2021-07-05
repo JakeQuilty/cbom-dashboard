@@ -9,7 +9,7 @@ export async function addOrg(data) {
     const response = await fetch(`/api/org/new`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({org: data})
+        body: JSON.stringify(data)
       })
     return await response.json();
 }
@@ -19,7 +19,7 @@ export async function scanOrg(data) {
     const response = await fetch(`/api/org/scan`, {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({org: data})
+        body: JSON.stringify({data})
       })
     return await response.json();
 }

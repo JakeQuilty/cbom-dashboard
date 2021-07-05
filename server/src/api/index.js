@@ -1,8 +1,8 @@
-const Router = require('express');
+const express = require('express');
 const org = require('./routes/org');
 
 module.exports = () => {
-    const app = Router();
+    const app = express.Router();
     org(app);
 
     return app;

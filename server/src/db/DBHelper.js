@@ -2,6 +2,13 @@ const Logger = require("../loaders/logger");
 const config = require("../config");
 const db = require('./mysql.js');
 
+const dbTable = config.dbTables.organization.name;
+const dbOrgID = config.dbTables.organization.org_id;
+const dbOrgName = config.dbTables.organization.org_name;
+const dbUserID = config.dbTables.organization.user_id;
+const dbGHID = config.dbTables.organization.gh_id;
+const dbAuthToken = config.dbTables.organization.auth_token;
+
 module.exports = class DBHelper {
 
     /*
@@ -17,13 +24,8 @@ module.exports = class DBHelper {
             throw new Error(e);
         }
 
-        // names of the tables in the db
-        dbTable = config.dbTables.organization.name;
-        dbOrgName = config.dbTables.organization.org_name;
-        dbUserID = config.dbTables.organization.user_id;
-
         Logger.debug(`Checking if org: ${params.name} exists in db`);
-        var sql = `SELECT 1 FROM ${dbtable} WHERE ${dbOrgName} = '${params.name}' AND ${dbUserID} = '${params.userID}' LIMIT 1;`;
+        var sql = `SELECT 1 FROM ${dbTable} WHERE ${dbOrgName} = '${params.name}' AND ${dbUserID} = '${params.userID}' LIMIT 1;`;
 
         try {
             var result = await db.query(sql);
@@ -35,7 +37,6 @@ module.exports = class DBHelper {
         // result.length > 0 means a list of results were returned
         // from db meaning it's a duplicate
         let len = result[0].length
-        console.log(len);
         return (Boolean(len > 0));
     }
 
@@ -44,13 +45,16 @@ module.exports = class DBHelper {
     params - name, githubID, token, userID
     */
     async orgCreateEntry(params){
-        // names of the tables in the db
-        dbTable = config.dbTables.organization.name;
-        dbOrgName = config.dbTables.organization.org_name;
-        dbUserID = config.dbTables.organization.user_id;
-        dbGHID = config.dbTables.organization.gh_id;
-        dbAuthToken = config.dbTables.organization.auth_token;
-
+        if (
+            params.name     === undefined || 
+            params.userID   === undefined ||
+            params.githubID === undefined ||
+            params.token    === undefined){
+            let e = 'orgCreateEntry() called without valid params';
+            Logger.error(e + `\nname: ${params.name}\nuserID: ${params.userID}\ngithubID: ${params.githubID}\ntoken: ${params.token}`);
+            throw new Error(e);
+        }
+        
         Logger.debug(`Adding org: ${params.name}:${params.githubID} to database...`)
         
         // Here we are putting user inputs into a SQL command.

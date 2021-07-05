@@ -3,33 +3,33 @@ const { Octokit } = require("@octokit/rest");
 
 module.exports = class GitHubService {
     async validateToken(authToken){
-        console.log("Validating token...");
+        Logger.debug("Validating token...");
         try{
             const octokit = new Octokit({
                 auth: `token ${authToken}`
             }); 
             let result = await octokit.rest.users.getAuthenticated();
             if (result.status == 200){
-                console.log(`user:${result.data.login} token verified`);
+                Logger.debug(`user:${result.data.login} token verified`);
                 return true;
             } else {
-                console.log("Unknown result");
-                console.log(result);
+                Logger.debug("Unknown result");
+                Logger.debug(result);
                 return false;
             }
         }catch (error) {
             if (error.status == 401) {
-                console.log(`Unable to validate OAuth Token is valid`);
+                Logger.debug(`Unable to validate OAuth Token is valid`);
                 return false;
             } else {
-                console.log(`Error validating token`);
+                Logger.debug(`Error validating token`);
                 throw error;
             }
         }
     }
 
     async validateOrg(authToken, name){
-        Logger.debug(`Validating org: ${name} exists...`);
+        Logger.debug(`Validating org: ${name}...`);
         try{
             const octokit = new Octokit({
                 auth: `token ${authToken}`
@@ -84,5 +84,22 @@ module.exports = class GitHubService {
             }
 
         }
+    }
+    
+    async getReposList(){
+        var repos;
+        const octokit = new Octokit({
+            auth: `token ${this.token}`
+          });
+        for await (const response of octokit.paginate(octokit.rest.repos.listForOrg({
+            org: this.name,
+            per_page: 100
+        })
+        )) {
+            response.forEach(element => {
+                repos.append(element.name)
+            });
+        }
+        return repos;
     }
 }

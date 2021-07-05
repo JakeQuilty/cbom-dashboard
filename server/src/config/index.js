@@ -2,6 +2,9 @@ process.env.NODE_ENV = process.env.NODE_ENV || 'development';
 
 module.exports = {
     port: 3080, //parseInt(process.env.PORT, 10)
+    api: {
+        prefix: '/api',
+    },
 
     //https://www.npmjs.com/package/winston#logging-levels
     logs: {
