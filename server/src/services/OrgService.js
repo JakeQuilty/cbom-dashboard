@@ -1,9 +1,7 @@
 const GitHubService = require("./GitHubService");
 const DBHelper = require("../db/DBHelper");
 const Logger = require("../loaders/logger");
-// const {Service} = require("typedi");
 
-// @Service();
 module.exports = class OrgService {
     
     async CreateNewOrg(org){
@@ -47,6 +45,16 @@ module.exports = class OrgService {
         
 
 
+    }
+
+    async ScanOrg(org){
+        // get org data from db - DBHelper
+        // get list of org's repos - GitHubService
+        // foreach repo
+        //      get files
+        //      foreach file
+        //          see if file is a dep file
+        //          if depfile, parse and store in db
     }
 
 }

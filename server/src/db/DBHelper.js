@@ -12,10 +12,13 @@ const dbAuthToken = config.dbTables.organization.auth_token;
 module.exports = class DBHelper {
 
     /*
-     checks if an organization with the same name is owned by user with the supplied id
-     true - user already has an org with that name
-     false - not duplicate
-     expects params name and userID
+    Checks if an organization with the same name is owned by user with the supplied id
+    Params:
+        name - org name
+        userID - DB userid
+    Returns:
+        true - user already has an org with that name
+        false - not duplicate
     */
      async orgExists(params){
         if (params.name === undefined || params.userID === undefined){
@@ -41,8 +44,12 @@ module.exports = class DBHelper {
     }
 
     /*
-    creates an entry for the org in the database
-    params - name, githubID, token, userID
+    Creates an entry for the org in the database
+    Params:
+        name - org name
+        userID - DB userid
+        githubID - unique github id of org
+        token - user's github oauth token
     */
     async orgCreateEntry(params){
         if (
@@ -71,6 +78,18 @@ module.exports = class DBHelper {
             Logger.error(`query to make new DB entry for org:${params.name} failed\n`, error);
             throw error;
         }
+    }
+
+    /*
+    Retrieves an org owned by userid from the database
+    Params:
+        name - org name
+        userID - DB userid
+    Returns:
+        list of the org's database values
+    */
+    async orgRetrieve(params){
+
     }
 
 }
