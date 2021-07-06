@@ -28,17 +28,17 @@ module.exports = class GitHubService {
         }
     }
 
-    async validateOrg(authToken, name){
-        Logger.debug(`Validating org: ${name}...`);
+    async validateOrg(authToken, orgName){
+        Logger.debug(`Validating org: ${orgName}...`);
         try{
             const octokit = new Octokit({
                 auth: `token ${authToken}`
             });
             let result = await octokit.rest.orgs.get({
-                org: name
+                org: orgName
             });
             if (result.status == 200){
-                Logger.debug(`org:${name} verified`);
+                Logger.debug(`org:${orgName} verified`);
                 return true;
             }
             else{
@@ -47,26 +47,26 @@ module.exports = class GitHubService {
             }
         } catch (error) {
             if (error.status == 404) {
-                Logger.error(`Unable to validate org:${name} exists`);
+                Logger.error(`Unable to validate org:${orgName} exists`);
                 return false;
             } else {
-                Logger.error(`Error validating org:${name}`);
+                Logger.error(`Error validating org:${orgName}`);
                 throw error;
             }
         }
         
     }
 
-    async getOrgGithubID(authToken, name){
+    async getOrgGithubID(authToken, orgName){
         try {
             const octokit = new Octokit({
                 auth: `token ${authToken}`
                 });
             let result = await octokit.rest.orgs.get({
-                org: name
+                org: orgName
             });
             if (result.status == 200){
-                Logger.debug(`org:${name} GitHub ID retrieval: success`);
+                Logger.debug(`org:${orgName} GitHub ID retrieval: success`);
                 return result.data.id;
             }
             else{
@@ -75,7 +75,7 @@ module.exports = class GitHubService {
             }
         }catch (error) {
             if (error.status == 404) {
-                Logger.error(`org:${name} GitHub ID retrieval: fail\nMake sure to use validateOrg() first`);
+                Logger.error(`org:${orgName} GitHub ID retrieval: fail\nMake sure to use validateOrg() first`);
                 throw error;
             }
             else {
@@ -85,7 +85,7 @@ module.exports = class GitHubService {
 
         }
     }
-    
+
     async getReposList(){
         var repos;
         const octokit = new Octokit({

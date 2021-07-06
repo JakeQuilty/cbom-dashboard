@@ -1,3 +1,4 @@
+// Creds: https://github.com/santiq/bulletproof-nodejs/blob/master/src/loaders/express.ts
 const express = require('express');
 const bodyParser = require("body-parser");
 const routes = require('../api');

@@ -12,13 +12,39 @@ module.exports = {
     },
     
     mysql: {
-        address: process.env.DB_ADDRESS,
-        user: process.env.DB_USERNAME,
-        password: process.env.DB_PASSWORD,
-        database: process.env.DB_NAME,
-        waitForConnections: true,
-        connectionLimit: 10,
-        queueLimit: 0,
+        development: {
+            address: process.env.DB_ADDRESS,
+            user: process.env.DB_USERNAME,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_NAME,
+            dialect: 'mysql',
+            poolMax: 10,
+            poolMin: 0,
+            poolAcquire: 30000,
+            poolIdle: 10000
+        },
+        test: {
+            address: process.env.DB_TEST_ADDRESS,
+            user: process.env.DB_TEST_USERNAME,
+            password: process.env.DB_TEST_PASSWORD,
+            database: process.env.DB_TEST_NAME,
+            dialect: 'mysql',
+            poolMax: 10,
+            poolMin: 0,
+            poolAcquire: 30000,
+            poolIdle: 10000
+        },
+        production: {
+            address: process.env.DB_ADDRESS,
+            user: process.env.DB_USERNAME,
+            password: process.env.DB_PASSWORD,
+            database: process.env.DB_NAME,
+            dialect: 'mysql',
+            poolMax: 10,
+            poolMin: 0,
+            poolAcquire: 30000,
+            poolIdle: 10000
+        }
     },
 
     dbTables: {
@@ -29,6 +55,14 @@ module.exports = {
             org_name: "org_name",
             auth_token: "auth_token",
             user_id: "user_id"
+        },
+        user:{
+            name: 'user',
+            user_name: 'user_name',
+            user_password: 'user_password',
+            first_name: 'first_name',
+            last_name: 'last_name',
+            account_priv: 'account_priv'
         }
     }
 }

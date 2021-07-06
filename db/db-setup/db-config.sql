@@ -1,4 +1,4 @@
-CREATE TABLE users
+CREATE TABLE user
 (
     user_id INT(8) NOT NULL AUTO_INCREMENT,
     user_name VARCHAR(16) NOT NULL,
@@ -20,7 +20,7 @@ CREATE TABLE organization
     user_id INT(8) NOT NULL,
 
     PRIMARY KEY (org_id),
-    FOREIGN KEY (user_id) REFERENCES users (user_id) ON DELETE CASCADE ON UPDATE CASCADE
+    FOREIGN KEY (user_id) REFERENCES user (user_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
 CREATE TABLE repository
@@ -72,4 +72,4 @@ CREATE TABLE dependency
 INSERT INTO file_type (language_name) VALUES ('python');
 INSERT INTO file_type (language_name) VALUES ('ruby');
 -- root default password is changeme
-INSERT INTO users (user_name, user_password, account_priv) VALUES ('root', '4cb9c8a8048fd02294477fcb1a41191a', '0');
+INSERT INTO user (user_name, user_password, account_priv) VALUES ('root', '4cb9c8a8048fd02294477fcb1a41191a', '0');
