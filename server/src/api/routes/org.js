@@ -26,7 +26,7 @@ module.exports = (app) => {
         }),
         async (req, res) => {
             Logger.info(`::::: Adding New Org: ${req.body.name} :::::`);
-            Logger.debug('body: %o', req.body);
+            // Logger.debug('body: %o', req.body); // Uncommenting this will print plaintext GitHub Auth Tokens to the console...
             const reqData = {
                 name: req.body.name,
                 ghAuthToken: req.body.ghAuthToken,
@@ -44,7 +44,7 @@ module.exports = (app) => {
 
     route.get('/scan',
         celebrate({
-            [Segments.BODY]: Joi.object.keys({
+            [Segments.BODY]: Joi.object().keys({
                 userID: Joi.string().required(),
                 name: Joi.string().required()
             }),

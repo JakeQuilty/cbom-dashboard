@@ -1,16 +1,19 @@
 const GitHubService = require("./GitHubService");
-const DBHelper = require("../db/DBHelper");
+const DatabaseService = require("./DatabaseService");
 const Logger = require("../loaders/logger");
 
 module.exports = class OrgService {
     
     async CreateNewOrg(org){
-        const name = org.name;
+        const orgName = org.name;
         const ghAuthToken = org.ghAuthToken;
         const userID = org.userID;
 
+        // for tests do an
+        // if test env: these get mock functions
+        // else load these real ones
         const ghService = new GitHubService();
-        const dbHelper = new DBHelper();
+        const dbHelper = new DatabaseService();
 
         // make sure token and org are valid
         if (!await ghService.validateToken(ghAuthToken)){
@@ -18,14 +21,14 @@ module.exports = class OrgService {
             // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/401
             return {status: 401, data: {message: "invalid token"}};
         }
-        if (!await ghService.validateOrg(ghAuthToken, name)){
+        if (!await ghService.validateOrg(ghAuthToken, orgName)){
             Logger.info("User sent an invalid org");
             return {status: 404, data: {message: "invalid organization"}};
         }
 
         // check if org is duplicate
         if (await dbHelper.orgExists({
-            name: name,
+            orgName: orgName,
             userID: userID
         })){
             Logger.info("Organization already exists in database");
@@ -33,14 +36,14 @@ module.exports = class OrgService {
         }
 
         await dbHelper.orgCreateEntry({
-            name: name,
+            orgName: orgName,
             userID: userID,
             token: ghAuthToken,
-            githubID: await ghService.getOrgGithubID(ghAuthToken, name)
+            githubID: await ghService.getOrgGithubID(ghAuthToken, orgName)
         })
-        Logger.info(`Org:${name} added succesfully`);
+        Logger.info(`Org:${orgName} added succesfully`);
 
-        return {status: 200, data: {name: name}}
+        return {status: 200, data: {name: orgName}}
         
         
 
