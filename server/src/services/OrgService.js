@@ -13,7 +13,7 @@ module.exports = class OrgService {
         // if test env: these get mock functions
         // else load these real ones
         const ghService = new GitHubService();
-        const dbHelper = new DatabaseService();
+        const dbService = new DatabaseService();
 
         // make sure token and org are valid
         if (!await ghService.validateToken(ghAuthToken)){
@@ -27,7 +27,7 @@ module.exports = class OrgService {
         }
 
         // check if org is duplicate
-        if (await dbHelper.orgExists({
+        if (await dbService.orgExists({
             orgName: orgName,
             userID: userID
         })){
@@ -35,7 +35,7 @@ module.exports = class OrgService {
             return {status: 409, data: {message: "organization already exists"}};
         }
 
-        await dbHelper.orgCreateEntry({
+        await dbService.orgCreateEntry({
             orgName: orgName,
             userID: userID,
             token: ghAuthToken,
@@ -52,6 +52,7 @@ module.exports = class OrgService {
 
     async ScanOrg(org){
         // get org data from db - DBHelper
+        // decrypt oauth token
         // get list of org's repos - GitHubService
         // foreach repo
         //      get files

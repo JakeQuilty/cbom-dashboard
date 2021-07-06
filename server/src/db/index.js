@@ -3,16 +3,16 @@ const { Sequelize } = require('sequelize');
 const Logger = require('../loaders/logger');
 
 const sequelize = new Sequelize(
-    config.mysql.production.database,
-    config.mysql.production.user,
-    config.mysql.production.password, {
-    host: config.mysql.production.address,
-    dialect: config.mysql.production.dialect,
+    config.mysql.database,
+    config.mysql.user,
+    config.mysql.password, {
+    host: config.mysql.address,
+    dialect: config.mysql.dialect,
     pool: {
-        max: 5,
-        min: 0,
-        acquire: 30000,
-        idle: 10000
+        max: config.mysql.poolMax,
+        min: config.mysql.poolMin,
+        acquire: config.mysql.poolAcquire,
+        idle: config.mysql.poolIdle
     },
     logging: Logger.debug.bind(Logger),
     define: {

@@ -22,6 +22,7 @@
     "@octokit/rest": "^18.6.0",
     "bundle": "^2.1.0",
     "celebrate": "^14.0.0",
+    "crypto": "^1.0.1",
     "express": "^4.17.1",
     "extend": "^3.0.2",
     "http-proxy-middleware": "^2.0.0",

@@ -12,39 +12,15 @@ module.exports = {
     },
     
     mysql: {
-        development: {
-            address: process.env.DB_ADDRESS,
-            user: process.env.DB_USERNAME,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME,
-            dialect: 'mysql',
-            poolMax: 10,
-            poolMin: 0,
-            poolAcquire: 30000,
-            poolIdle: 10000
-        },
-        test: {
-            address: process.env.DB_TEST_ADDRESS,
-            user: process.env.DB_TEST_USERNAME,
-            password: process.env.DB_TEST_PASSWORD,
-            database: process.env.DB_TEST_NAME,
-            dialect: 'mysql',
-            poolMax: 10,
-            poolMin: 0,
-            poolAcquire: 30000,
-            poolIdle: 10000
-        },
-        production: {
-            address: process.env.DB_ADDRESS,
-            user: process.env.DB_USERNAME,
-            password: process.env.DB_PASSWORD,
-            database: process.env.DB_NAME,
-            dialect: 'mysql',
-            poolMax: 10,
-            poolMin: 0,
-            poolAcquire: 30000,
-            poolIdle: 10000
-        }
+        address: process.env.DB_ADDRESS,
+        user: process.env.DB_USERNAME,
+        password: process.env.DB_PASSWORD,
+        database: process.env.DB_NAME,
+        dialect: 'mysql',
+        poolMax: 10,
+        poolMin: 0,
+        poolAcquire: 30000,
+        poolIdle: 10000
     },
 
     dbTables: {
@@ -64,5 +40,9 @@ module.exports = {
             last_name: 'last_name',
             account_priv: 'account_priv'
         }
+    },
+    // if you don't like it. run in production mode.
+    encryption: {
+        key: process.env.ENCRYTPION_KEY || "DL2iak8NtdIl9cCidAS23cdDcI2p012z"
     }
 }

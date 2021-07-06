@@ -16,7 +16,7 @@ CREATE TABLE organization
     gh_id INT NOT NULL,
     org_name VARCHAR(255) NOT NULL,
     -- need to  figure out encryption type for this
-    auth_token VARCHAR(255) NOT NULL,
+    auth_token JSON NOT NULL,
     user_id INT(8) NOT NULL,
 
     PRIMARY KEY (org_id),
