@@ -5,9 +5,7 @@ module.exports = class GitHubService {
     async validateToken(authToken){
         Logger.debug("Validating token...");
         try{
-            const octokit = new Octokit({
-                auth: `token ${authToken}`
-            }); 
+            const octokit = await getOctokit(authToken);
             let result = await octokit.rest.users.getAuthenticated();
             if (result.status == 200){
                 Logger.debug(`user:${result.data.login} token verified`);
@@ -31,9 +29,7 @@ module.exports = class GitHubService {
     async validateOrg(authToken, orgName){
         Logger.debug(`Validating org: ${orgName}...`);
         try{
-            const octokit = new Octokit({
-                auth: `token ${authToken}`
-            });
+            const octokit = await getOctokit(authToken);
             let result = await octokit.rest.orgs.get({
                 org: orgName
             });
@@ -59,9 +55,7 @@ module.exports = class GitHubService {
 
     async getOrgGithubID(authToken, orgName){
         try {
-            const octokit = new Octokit({
-                auth: `token ${authToken}`
-                });
+            const octokit = await getOctokit(authToken);
             let result = await octokit.rest.orgs.get({
                 org: orgName
             });
@@ -113,7 +107,7 @@ module.exports = class GitHubService {
         // might need to move this out and send in this data as a param if I need
         // the repo data for other things too. Don't call getOrgAllReposData() twice.
         await getOrgAllReposData(params.orgName, params.authToken)
-        .then(async function(result){
+        .then(function(result){
             result.forEach(element => {
                 repos.push(element.name)
             });
@@ -124,9 +118,7 @@ module.exports = class GitHubService {
 }
 
 async function getOrgAllReposData(orgName, authToken) {
-    const octokit = new Octokit({
-        auth: `token ${authToken}`
-      });
+    const octokit = await getOctokit(authToken);
      return await octokit.paginate(
         octokit.rest.repos.listForOrg,
         {
@@ -134,4 +126,29 @@ async function getOrgAllReposData(orgName, authToken) {
             per_page: 100   
         }
     );
+}
+
+async function getOctokit(authToken){
+    return new Octokit({
+        auth: "token " + authToken,
+        throttle: {
+          onRateLimit: (retryAfter, options) => {
+            octokit.log.warn(
+              `Request quota exhausted for request ${options.method} ${options.url}`
+            );
+      
+            // Retry twice after hitting a rate limit error, then give up
+            if (options.request.retryCount <= 2) {
+              console.log(`Retrying after ${retryAfter} seconds!`);
+              return true;
+            }
+          },
+          onAbuseLimit: (retryAfter, options) => {
+            // does not retry, only logs a warning
+            octokit.log.warn(
+              `Abuse detected for request ${options.method} ${options.url}`
+            );
+          },
+        },
+      });
 }
