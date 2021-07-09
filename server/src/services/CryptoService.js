@@ -16,7 +16,7 @@ const encrypt = (text) => {
 };
 
 const decrypt = (hash) => {
-    let decipher = crypto.createDecipheriv(algorithm, secretKey, Buffer.from(hash.iv, 'hex'));
+    let decipher = crypto.createDecipheriv(algorithm, secret, Buffer.from(hash.iv, 'hex'));
     let decrpyted = Buffer.concat([decipher.update(Buffer.from(hash.content, 'hex')), decipher.final()]);
     return decrpyted.toString();
 };
