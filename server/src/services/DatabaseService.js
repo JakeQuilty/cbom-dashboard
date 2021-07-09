@@ -30,7 +30,7 @@ module.exports = class DatabaseService {
                     [config.dbTables.organization.user_id]: params.userID
                 },
                 limit: 1
-            })
+            });
         } catch (error) {
             Logger.error("orgExists() failed on query\n", error);
             throw error;
@@ -88,10 +88,45 @@ module.exports = class DatabaseService {
         name - org name
         userID - DB userid
     Returns:
-        list of the org's database values
+        list of the org's database values, with the auth token decrypted
     */
     async orgRetrieve(params){
+        if (
+            params.orgName === undefined || 
+            params.userID === undefined) {
+            let e = 'orgRetrieve() called without valid params';
+            Logger.error(e + `\orgName: ${params.orgName}\nuserID: ${params.userID}`);
+            throw new Error(e);
+        }
 
-        // returns enencrypted oauth token
+        Logger.debug(`Retrieving org:${params.orgName} from DB...`);
+        let org = {}
+        try {
+            await models.Organization.findAll({
+                where: {
+                    [config.dbTables.organization.org_name]: params.orgName,
+                    [config.dbTables.organization.user_id]: params.userID
+                },
+                limit: 1
+            }).then(async function(result) {
+                org = await dbResultToObject(result);
+                Logger.debug('Decrypting OAuth Token...')
+                let decryptedToken = decrypt(org[[config.dbTables.organization.auth_token]]);
+                org[[config.dbTables.organization.auth_token]] = decryptedToken;
+            });
+        } catch (error) {
+            Logger.error("orgRetrieve() failed on query\n", error);
+            throw error;
+        }
+
+        return org;
     }
+};
+
+async function dbResultToObject(dbResult){
+    let resultObject = {}
+    for (const [key, value] of Object.entries(dbResult[0].dataValues)) {
+        resultObject[key] = value;
+    }
+    return resultObject;
 }
