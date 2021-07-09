@@ -20,7 +20,7 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         [config.dbTables.organization.auth_token]: {
-            type: DataTypes.JSON, // THIS WILL NEED TO CHANGE TO STRING(number) when I figure out encyrption length
+            type: DataTypes.JSON,
             allowNull: false
         },
         [config.dbTables.organization.user_id]: {

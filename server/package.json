@@ -27,7 +27,7 @@
     "extend": "^3.0.2",
     "http-proxy-middleware": "^2.0.0",
     "mysql2": "^2.2.5",
-    "octokit": "^1.0.6",
+    "octokit": "^1.1.0",
     "sequelize": "^6.6.5",
     "typedi": "^0.10.0",
     "winston": "^3.3.3"

@@ -2,7 +2,7 @@ const express = require("express");
 // import middlewares from '../middlewares';
 const typedi = require("typedi");
 const OrgService = require('../../services/OrgService');
-const {celebrate, Joi, Segments} = require('celebrate'); // celebrate, Joi
+const {celebrate, Joi, Segments} = require('celebrate');
 const Logger = require('../../loaders/logger')
 
 const route = express.Router();
@@ -42,7 +42,7 @@ module.exports = (app) => {
             }
         });
 
-    route.get('/scan',
+    route.post('/scan',
         celebrate({
             [Segments.BODY]: Joi.object().keys({
                 userID: Joi.string().required(),
@@ -57,7 +57,6 @@ module.exports = (app) => {
                 userID: req.body.userID
             }
             try {
-                // MIGHT HAVE TO DO SOME SORT OF PAGINATION BACK IF THERE'S HUNDREDS OF REPOS
                 let orgService = new OrgService();
                 const { status, data } = await orgService.ScanOrg(reqData);
                 // instead of returning all data at once, just send an OK response and have frontend make more calls to other endpoints to get data?

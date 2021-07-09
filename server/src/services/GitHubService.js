@@ -1,5 +1,5 @@
 const Logger = require("../loaders/logger");
-const { Octokit } = require("@octokit/rest");
+const { Octokit } = require("octokit");
 
 module.exports = class GitHubService {
     async validateToken(authToken){
@@ -86,20 +86,52 @@ module.exports = class GitHubService {
         }
     }
 
-    async getReposList(){
-        var repos;
-        const octokit = new Octokit({
-            auth: `token ${this.token}`
-          });
-        for await (const response of octokit.paginate(octokit.rest.repos.listForOrg({
-            org: this.name,
-            per_page: 100
-        })
-        )) {
-            response.forEach(element => {
-                repos.append(element.name)
-            });
+    /*
+    Retrieves a list of all repos in the provided organization
+    Params:
+        - orgName: name of GitHub organization
+        - authToken: GitHub OAuth Token
+    Returns:
+        Array of repos in the provided org
+    */
+    async getOrgReposList(params){
+        // check for missing params
+        if (
+            params.orgName === undefined || 
+            params.authToken === undefined) {
+            let e = 'getOrgReposList() called without valid params';
+
+            // redact authToken from logs
+            if (params.authToken !== undefined) {
+                params.authToken = "NOT UNDEFINED - VALUE REDACTED"
+            }
+            Logger.error(e + `orgName: ${params.orgName}\nauthToken: ${params.authToken}`);
+            throw new Error(e);
         }
+
+        const repos = [];
+        // might need to move this out and send in this data as a param if I need
+        // the repo data for other things too. Don't call getOrgAllReposData() twice.
+        await getOrgAllReposData(params.orgName, params.authToken)
+        .then(async function(result){
+            result.forEach(element => {
+                repos.push(element.name)
+            });
+        });
+
         return repos;
     }
+}
+
+async function getOrgAllReposData(orgName, authToken) {
+    const octokit = new Octokit({
+        auth: `token ${authToken}`
+      });
+     return await octokit.paginate(
+        octokit.rest.repos.listForOrg,
+        {
+            org: orgName,
+            per_page: 100   
+        }
+    );
 }

@@ -1,19 +1,21 @@
+const Logger = require("../loaders/logger");
+
+// for tests do an
+    // if test env: these get mock functions
+    // else load these real ones
 const GitHubService = require("./GitHubService");
 const DatabaseService = require("./DatabaseService");
-const Logger = require("../loaders/logger");
+const config = require("../config");
+
+const ghService = new GitHubService();
+const dbService = new DatabaseService();
 
 module.exports = class OrgService {
     
     async CreateNewOrg(org){
-        const orgName = org.name;
-        const ghAuthToken = org.ghAuthToken;
-        const userID = org.userID;
-
-        // for tests do an
-        // if test env: these get mock functions
-        // else load these real ones
-        const ghService = new GitHubService();
-        const dbService = new DatabaseService();
+        var orgName = org.name;
+        var ghAuthToken = org.ghAuthToken;
+        var userID = org.userID;
 
         // make sure token and org are valid
         if (!await ghService.validateToken(ghAuthToken)){
@@ -44,21 +46,39 @@ module.exports = class OrgService {
         Logger.info(`Org:${orgName} added succesfully`);
 
         return {status: 200, data: {name: orgName}}
-        
-        
-
-
     }
 
     async ScanOrg(org){
-        // get org data from db - DBHelper
-        // decrypt oauth token
+        var orgName = org.name;
+        var userID = org.userID;
+
+        // check if org exits in db - if not send error
+
+        //get org data from db - DBHelper
+        let orgData = await dbService.orgRetrieve({
+            orgName: orgName,
+            userID: userID
+        });
+
+        // validate token still works
+        // validate org still exists
+
         // get list of org's repos - GitHubService
+        let repoList = await ghService.getOrgReposList({
+            authToken: orgData[[config.dbTables.organization.auth_token]],
+            orgName: orgData[[config.dbTables.organization.org_name]]
+        });
+        console.log(repoList);
+
         // foreach repo
         //      get files
         //      foreach file
         //          see if file is a dep file
         //          if depfile, parse and store in db
+
+        // return scan data on a different list endpoint
+        // can be used when rendering in a user that already has data in db
+        return {status: 200, data: {name: orgName}};
     }
 
 }
