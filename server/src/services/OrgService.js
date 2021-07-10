@@ -5,6 +5,7 @@ const Logger = require("../loaders/logger");
     // else load these real ones
 const GitHubService = require("./GitHubService");
 const DatabaseService = require("./DatabaseService");
+const { isDepFile } = require("./DependencyService");
 const config = require("../config");
 
 const ghService = new GitHubService();
@@ -87,6 +88,7 @@ module.exports = class OrgService {
             orgName: orgData[[config.dbTables.organization.org_name]]
         });
 
+        // This is ugly, but since there is a ton of data I don't want to keep passing it back and forth
         for (const repo of repos){
             // make sure repo is not duplicate
             // this will double the db calls on initial org scan :/
@@ -97,10 +99,29 @@ module.exports = class OrgService {
             })){
                 repoID = await dbService.repoCreateEntry({
                     repoName: repo.name,
-                    defaultBranch: repo.defaultBranch,
+                    defaultBranch: repo.branch,
                     orgID: orgID
                 });
+            } // else check if default branch needs to be updated while we have the info??? - extra db calls will make it slower
+
+            const fileTree = await ghService.getRepoFilesList({ // 2 API reqs PER repo smh
+                orgName: orgName,
+                repoName: repo.name,
+                defaultBranch: repo.branch,
+                authToken: authToken
+            });
+
+            for (const file of fileTree){
+                if (await isDepFile(file.type, file.path)){
+                    console.log(file);
+                    // pass to depservice to determine what kinda file and parse
+                }
+
+                // we need to check path for dep file and keep sha for pulling down the depfile blob
+                // get blob only works with up to 100MB - check size before pulling?
             }
+
+
         }
         
 

@@ -103,25 +103,82 @@ module.exports = class GitHubService {
             throw new Error(e);
         }
 
-        const repos = [];
-        // might need to move this out and send in this data as a param if I need
-        // the repo data for other things too. Don't call getOrgAllReposData() twice.
-        await getOrgAllReposData(params.orgName, params.authToken)
-        .then(function(result){
-            result.forEach(element => {
-                let repo = {
-                    name: element.name,
-                    branch: element.default_branch
-                }
-                repos.push(repo);
+        try{
+            const repos = [];
+            // might need to move this out and send in this data as a param if I need
+            // the repo data for other things too. Don't call getOrgAllReposData() twice.
+            await getOrgAllReposData(params.orgName, params.authToken)
+            .then(function(result){
+                result.forEach(element => {
+                    let repo = {
+                        name: element.name,
+                        branch: element.default_branch
+                    }
+                    repos.push(repo);
+                });
             });
-        });
 
-        return repos;
+            return repos;
+        }catch (error) {
+            Logger.error("getOrgReposList() failed to create the orgs list:",error);
+            throw error;
+        }
     }
 
+    /*
+    Retrieves a list of all the files in the repo
+    Params:
+        - orgName: name of GitHub organization
+        - repoName: name of GitHub repository
+        - defaultBranch: default branch of the repo (ex. master)
+        - authToken: GitHub OAuth Token
+    Returns:
+        Array of strings on the file names
+    */
     async getRepoFilesList(params){
-        
+        const octokit = await getOctokit(params.authToken);
+
+        // check for missing params
+        if (
+            params.orgName === undefined || 
+            params.authToken === undefined ||
+            params.repoName === undefined ||
+            params.defaultBranch === undefined) {
+            let e = 'getRepoFilesList() called without valid params';
+
+            // redact authToken from logs
+            if (params.authToken !== undefined) {
+                params.authToken = "NOT UNDEFINED - VALUE REDACTED"
+            }
+            Logger.error(e + `orgName: ${params.orgName}\nrepoName: ${params.repoName}\n
+            defaultBranch: ${params.defaultBranch}\nauthToken: ${params.authToken}`);
+            throw new Error(e);
+        }
+
+        try {
+            // if truncated = true, we're missing files
+            // https://docs.github.com/en/rest/reference/git#get-a-tree
+            const commitData = await octokit.request('GET /repos/{owner}/{repo}/commits/{default_branch}', {
+                owner: params.orgName,
+                repo: params.repoName,
+                default_branch: params.defaultBranch
+              });
+
+            const sha = commitData.data.sha;
+
+            const result = await octokit.request('GET /repos/{owner}/{repo}/git/trees/{tree_sha}?recursive=true', {
+                owner: params.orgName,
+                repo: params.repoName,
+                tree_sha: sha
+              });
+            
+            return result.data.tree;
+
+        } catch (error) {
+            Logger.error(`getRepoFilesList() failed to get files repo:${params.repoName}`);
+            throw error;
+        }
+
     }
 }
 

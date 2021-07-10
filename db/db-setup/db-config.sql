@@ -72,5 +72,6 @@ CREATE TABLE dependency
 
 INSERT INTO file_type (language_name) VALUES ('python');
 INSERT INTO file_type (language_name) VALUES ('ruby');
+INSERT INTO file_type (language_name) VALUES ('javascript');
 -- root default password is changeme
 INSERT INTO user (user_name, user_password, account_priv) VALUES ('root', '4cb9c8a8048fd02294477fcb1a41191a', '0');

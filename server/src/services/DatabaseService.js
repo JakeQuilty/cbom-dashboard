@@ -137,7 +137,7 @@ module.exports = class DatabaseService {
             params.orgID   === undefined ||
             params.defaultBranch === undefined) {
             let e = 'repoCreateEntry() called without valid params';
-            Logger.error(e + `\norgName: ${params.repoName}\nrepoID: ${params.repoID}\ndefaultBranch: ${params.defaultBranch}`);
+            Logger.error(e + `\norgName: ${params.repoName}\norgID: ${params.orgID}\ndefaultBranch: ${params.defaultBranch}`);
             throw new Error(e);
         }
         
