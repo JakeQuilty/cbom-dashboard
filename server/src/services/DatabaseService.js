@@ -115,12 +115,83 @@ module.exports = class DatabaseService {
                 org[[config.dbTables.organization.auth_token]] = decryptedToken;
             });
         } catch (error) {
-            Logger.error("orgRetrieve() failed on query\n", error);
+            Logger.error("orgRetrieve() failed\n", error);
             throw error;
         }
 
         return org;
     }
+
+    /*
+    Creates an entry for the repo in the database
+    Params:
+        repoName - repo name
+        orgID - DB orgid
+        defaultBranch - defaultBranch of repo (ex: master)
+    Returns:
+        auto-generated repo db id
+    */
+    async repoCreateEntry(params) {
+        if (
+            params.repoName     === undefined || 
+            params.orgID   === undefined ||
+            params.defaultBranch === undefined) {
+            let e = 'repoCreateEntry() called without valid params';
+            Logger.error(e + `\norgName: ${params.repoName}\nrepoID: ${params.repoID}\ndefaultBranch: ${params.defaultBranch}`);
+            throw new Error(e);
+        }
+        
+        Logger.silly(`Adding repo: ${params.repoName} to database...`)
+
+        try {
+            var repo = await models.Repository.create({
+                [config.dbTables.repository.repo_name]: params.repoName,
+                [config.dbTables.repository.default_branch]: params.defaultBranch,
+                [config.dbTables.repository.org_id]: params.orgID
+            })
+        } catch (error) {
+            Logger.error(`query to make new DB entry for repo:${params.repoName} failed\n`, error);
+            throw error;
+        }
+        return repo.id;
+    }
+
+    /*
+    Checks if a repo with the same name is owned by org with the supplied id
+    Params:
+        repoName - repo name
+        orgID - DB org_id
+    Returns:
+        true - The org row already has a repo with that name
+        false - not duplicate
+    */
+        async repoExists(params){
+            if (
+                params.repoName === undefined || 
+                params.orgID === undefined) {
+                let e = 'repoExists() called without valid params';
+                Logger.error(e + `repoName: ${params.repoName}\norgID: ${params.orgID}`);
+                throw new Error(e);
+            }
+    
+            try {
+                var result = await models.Repository.findAll({
+                    where: {
+                        [config.dbTables.repository.repo_name]: params.repoName,
+                        [config.dbTables.repository.org_id]: params.orgID
+                    },
+                    limit: 1
+                });
+            } catch (error) {
+                Logger.error("repoExists() failed on query\n", error);
+                throw error;
+            }
+    
+            // result.length > 0 means a list of results were returned
+            // from db meaning it's a duplicate
+            let len = result.length
+            return (Boolean(len > 0));
+        }
 };
 
 async function dbResultToObject(dbResult){

@@ -24,6 +24,15 @@ module.exports = {
     },
 
     dbTables: {
+        user:{
+            name: 'user',
+            user_id: 'user_id',
+            user_name: 'user_name',
+            user_password: 'user_password',
+            first_name: 'first_name',
+            last_name: 'last_name',
+            account_priv: 'account_priv'
+        },
         organization:{
             name: "organization",
             org_id: "org_id",
@@ -32,14 +41,13 @@ module.exports = {
             auth_token: "auth_token",
             user_id: "user_id"
         },
-        user:{
-            name: 'user',
-            user_name: 'user_name',
-            user_password: 'user_password',
-            first_name: 'first_name',
-            last_name: 'last_name',
-            account_priv: 'account_priv'
-        }
+        repository:{
+            name: 'repository',
+            repo_id: 'repo_id',
+            repo_name: 'repo_name',
+            default_branch: 'default_branch',
+            org_id: 'org_id'
+        },
     },
     // if you don't like it. run in production mode.
     encryption: {

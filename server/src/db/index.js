@@ -14,7 +14,7 @@ const sequelize = new Sequelize(
         acquire: config.mysql.poolAcquire,
         idle: config.mysql.poolIdle
     },
-    logging: Logger.debug.bind(Logger),
+    logging: Logger.silly.bind(Logger),
     define: {
         timestamps: false,
     }
@@ -23,6 +23,7 @@ const sequelize = new Sequelize(
 const modelDefiners = [
     require('./models/organization.model'),
     require('./models/user.model'),
+    require('./models/repository.model'),
 ]
 
 for (const modelDefiner of modelDefiners) {

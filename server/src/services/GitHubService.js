@@ -86,7 +86,7 @@ module.exports = class GitHubService {
         - orgName: name of GitHub organization
         - authToken: GitHub OAuth Token
     Returns:
-        Array of repos in the provided org
+        Array of repos with name and default branch in the provided org
     */
     async getOrgReposList(params){
         // check for missing params
@@ -109,11 +109,19 @@ module.exports = class GitHubService {
         await getOrgAllReposData(params.orgName, params.authToken)
         .then(function(result){
             result.forEach(element => {
-                repos.push(element.name)
+                let repo = {
+                    name: element.name,
+                    branch: element.default_branch
+                }
+                repos.push(repo);
             });
         });
 
         return repos;
+    }
+
+    async getRepoFilesList(params){
+        
     }
 }
 

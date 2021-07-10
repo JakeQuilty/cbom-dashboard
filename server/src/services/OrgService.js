@@ -13,9 +13,9 @@ const dbService = new DatabaseService();
 module.exports = class OrgService {
     
     async CreateNewOrg(org){
-        var orgName = org.name;
-        var ghAuthToken = org.ghAuthToken;
-        var userID = org.userID;
+        const orgName = org.name;
+        const ghAuthToken = org.ghAuthToken;
+        const userID = org.userID;
 
         // make sure token and org are valid
         if (!await ghService.validateToken(ghAuthToken)){
@@ -49,31 +49,67 @@ module.exports = class OrgService {
     }
 
     async ScanOrg(org){
-        var orgName = org.name;
-        var userID = org.userID;
+        const orgName = org.name;
+        const userID = org.userID;
 
-        // check if org exits in db - if not send error
+        // 
+        // check if org exits in db
+        if (!await dbService.orgExists({
+            orgName: orgName,
+            userID: userID
+        })){
+            Logger.info("Organization does not exist in database");
+            return {status: 409, data: {message: "information for this organization does not exist"}};
+        }
 
         //get org data from db - DBHelper
         let orgData = await dbService.orgRetrieve({
             orgName: orgName,
             userID: userID
         });
+        const authToken = orgData[[config.dbTables.organization.auth_token]];
+        const orgID = orgData[[config.dbTables.organization.org_id]];
 
-        // validate token still works
-        // validate org still exists
+        // validate token still works and org still exists
+        if (!await ghService.validateToken(authToken)){
+            Logger.info('Invalid token');
+            // https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/409
+            return {status: 409, data: {message: "invalid token"}};
+        }
+        if (!await ghService.validateOrg(authToken, orgName)){
+            Logger.info("Invalid org");
+            return {status: 409, data: {message: "invalid organization"}};
+        }
 
         // get list of org's repos - GitHubService
-        let repoList = await ghService.getOrgReposList({
-            authToken: orgData[[config.dbTables.organization.auth_token]],
+        let repos = await ghService.getOrgReposList({
+            authToken: authToken,
             orgName: orgData[[config.dbTables.organization.org_name]]
         });
-        console.log(repoList);
+
+        for (const repo of repos){
+            // make sure repo is not duplicate
+            // this will double the db calls on initial org scan :/
+            let repoID;
+            if (!await dbService.repoExists({
+                repoName: repo.name,
+                orgID: orgID
+            })){
+                repoID = await dbService.repoCreateEntry({
+                    repoName: repo.name,
+                    defaultBranch: repo.defaultBranch,
+                    orgID: orgID
+                });
+            }
+        }
+        
 
         // foreach repo
-        //      get files
+        //      check if repo exists in db
+        //      store in db - keep track of id
+        //      get files - githubservice
         //      foreach file
-        //          see if file is a dep file
+        //          see if file is a dep file - scan service? has parsers and scans for dep filess
         //          if depfile, parse and store in db
 
         // return scan data on a different list endpoint
