@@ -68,6 +68,10 @@ CREATE TABLE dependency
     FOREIGN KEY (depfile_id) REFERENCES dependency_file (depfile_id) ON DELETE CASCADE ON UPDATE CASCADE
 );
 
+CREATE UNIQUE INDEX idx_user_name ON user(user_name);
+CREATE UNIQUE INDEX idx_user_org ON organization(org_name, user_id);
+CREATE UNIQUE INDEX idx_org_repo ON repository(repo_name, org_id);
+CREATE UNIQUE INDEX idx_repo_depfile ON dependency_file(file_path, repo_id);
 
 
 INSERT INTO file_type (language_name) VALUES ('python');

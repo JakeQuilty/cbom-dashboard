@@ -1,9 +1,12 @@
 const Logger = require("../loaders/logger");
 const config = require("../config");
-const { models } = require('../db');
-const { encrypt, decrypt } = require('./CryptoService');
+//const { models } = require('../models/db');
+const { encrypt, decrypt } = require('../utils/crypto.util');
 
 module.exports = class DatabaseService {
+    constructor (models) {
+        this.models = models;
+    }
 
     /*
     Checks if an organization with the same name is owned by user with the supplied id
@@ -19,18 +22,21 @@ module.exports = class DatabaseService {
             params.orgName === undefined || 
             params.userID === undefined) {
             let e = 'orgExists() called without valid params';
-            Logger.error(e + `\orgName: ${params.orgName}\nuserID: ${params.userID}`);
+            Logger.error(e + `\norgName: ${params.orgName}\nuserID: ${params.userID}`);
             throw new Error(e);
         }
 
         try {
-            var result = await models.Organization.findAll({
+            var result = await this.models.Organization.findAll({
                 where: {
                     [config.dbTables.organization.org_name]: params.orgName,
                     [config.dbTables.organization.user_id]: params.userID
                 },
                 limit: 1
             });
+
+            console.log(result); ////////////////////
+
         } catch (error) {
             Logger.error("orgExists() failed on query\n", error);
             throw error;
@@ -42,19 +48,18 @@ module.exports = class DatabaseService {
         return (Boolean(len > 0));
     }
 
-    /*
-    Creates an entry for the org in the database
-    Params:
-        orgName - org name
-        userID - DB userid
-        githubID - unique github id of org
-        token - user's github oauth token
-    Returns:
-        auto-generated org db id
+    /**
+    * @description Creates an entry for the org in the database
+    * @param params
+    *     orgName - org name,
+    *     userID - DB userid,
+    *     githubID - unique github id of org,
+    *     token - user's github oauth token,
+    * @returns auto-generated org db id
     */
     async orgCreateEntry(params){
         if (
-            params.orgName     === undefined || 
+            params.orgName  === undefined || 
             params.userID   === undefined ||
             params.githubID === undefined ||
             params.token    === undefined) {
@@ -69,12 +74,16 @@ module.exports = class DatabaseService {
         Logger.debug(`Adding org: ${params.orgName}:${params.githubID} to database...`)
 
         try {
-            var org = await models.Organization.create({
+            var org = await this.models.Organization.create({
                 [config.dbTables.organization.gh_id]: params.githubID,
                 [config.dbTables.organization.org_name]: params.orgName,
                 [config.dbTables.organization.auth_token]: encryptedToken,
                 [config.dbTables.organization.user_id]: params.userID
-            })
+            });
+
+            console.log('org create entry');    //////////////////
+            console.log(org);
+
         } catch (error) {
             Logger.error(`query to make new DB entry for org:${params.orgName} failed\n`, error);
             throw error;
@@ -101,14 +110,24 @@ module.exports = class DatabaseService {
 
         Logger.debug(`Retrieving org:${params.orgName} from DB...`);
         let org = {}
+
+        /*
+        Refactor this.
+        https://sequelize.org/v4/manual/installation/getting-started.html at the bottom: Promises
+        http://bluebirdjs.com/docs/api/promise.all.html
+        */
         try {
-            await models.Organization.findAll({
+            await this.models.Organization.findAll({
                 where: {
                     [config.dbTables.organization.org_name]: params.orgName,
                     [config.dbTables.organization.user_id]: params.userID
                 },
                 limit: 1
             }).then(async function(result) {
+
+                console.log('org retrieve');    //////////////////
+                console.log(result.get(config.dbTables.organization.auth_token));
+
                 org = await dbResultToObject(result);
                 Logger.debug('Decrypting OAuth Token...')
                 let decryptedToken = decrypt(org[[config.dbTables.organization.auth_token]]);
@@ -144,7 +163,7 @@ module.exports = class DatabaseService {
         Logger.silly(`Adding repo: ${params.repoName} to database...`)
 
         try {
-            var repo = await models.Repository.create({
+            var repo = await this.models.Repository.create({
                 [config.dbTables.repository.repo_name]: params.repoName,
                 [config.dbTables.repository.default_branch]: params.defaultBranch,
                 [config.dbTables.repository.org_id]: params.orgID
@@ -165,33 +184,37 @@ module.exports = class DatabaseService {
         true - The org row already has a repo with that name
         false - not duplicate
     */
-        async repoExists(params){
-            if (
-                params.repoName === undefined || 
-                params.orgID === undefined) {
-                let e = 'repoExists() called without valid params';
-                Logger.error(e + `repoName: ${params.repoName}\norgID: ${params.orgID}`);
-                throw new Error(e);
-            }
-    
-            try {
-                var result = await models.Repository.findAll({
-                    where: {
-                        [config.dbTables.repository.repo_name]: params.repoName,
-                        [config.dbTables.repository.org_id]: params.orgID
-                    },
-                    limit: 1
-                });
-            } catch (error) {
-                Logger.error("repoExists() failed on query\n", error);
-                throw error;
-            }
-    
-            // result.length > 0 means a list of results were returned
-            // from db meaning it's a duplicate
-            let len = result.length
-            return (Boolean(len > 0));
+    async repoExists(params){
+        if (
+            params.repoName === undefined || 
+            params.orgID === undefined) {
+            let e = 'repoExists() called without valid params';
+            Logger.error(e + `repoName: ${params.repoName}\norgID: ${params.orgID}`);
+            throw new Error(e);
         }
+
+        try {
+            var result = await this.models.Repository.findAll({
+                where: {
+                    [config.dbTables.repository.repo_name]: params.repoName,
+                    [config.dbTables.repository.org_id]: params.orgID
+                },
+                limit: 1
+            });
+        } catch (error) {
+            Logger.error("repoExists() failed on query\n", error);
+            throw error;
+        }
+
+        // result.length > 0 means a list of results were returned
+        // from db meaning it's a duplicate
+        let len = result.length
+        return (Boolean(len > 0));
+    }
+
+    async depCreateEntry(params) {
+        //for all deps call a private function to put them in one at a time -- asyncly??
+    }
 };
 
 async function dbResultToObject(dbResult){

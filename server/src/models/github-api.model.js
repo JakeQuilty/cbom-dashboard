@@ -1,6 +1,8 @@
 const Logger = require("../loaders/logger");
 const { Octokit } = require("octokit");
 
+// Each authenticated token gets 5000 requests an hour
+
 module.exports = class GitHubService {
     async validateToken(authToken){
         Logger.debug("Validating token...");

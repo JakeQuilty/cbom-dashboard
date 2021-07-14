@@ -1,6 +1,6 @@
-const config = require('../config');
+const config = require('../../config');
 const { Sequelize } = require('sequelize');
-const Logger = require('../loaders/logger');
+const Logger = require('../../loaders/logger');
 
 const sequelize = new Sequelize(
     config.mysql.database,
