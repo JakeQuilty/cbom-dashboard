@@ -27,15 +27,18 @@ module.exports = class DatabaseService {
         }
 
         try {
-            var result = await this.models.Organization.findAll({
+            var result = await this.models.Organization.findOne({
                 where: {
                     [config.dbTables.organization.org_name]: params.orgName,
                     [config.dbTables.organization.user_id]: params.userID
                 },
-                limit: 1
             });
 
-            console.log(result); ////////////////////
+            if (result === null) {
+                return false;
+            }
+
+            return true;
 
         } catch (error) {
             Logger.error("orgExists() failed on query\n", error);
@@ -44,8 +47,8 @@ module.exports = class DatabaseService {
 
         // result.length > 0 means a list of results were returned
         // from db meaning it's a duplicate
-        let len = result.length
-        return (Boolean(len > 0));
+        // let len = result.length
+        // return (Boolean(len > 0));
     }
 
     /**
@@ -80,10 +83,7 @@ module.exports = class DatabaseService {
                 [config.dbTables.organization.auth_token]: encryptedToken,
                 [config.dbTables.organization.user_id]: params.userID
             });
-
-            console.log('org create entry');    //////////////////
-            console.log(org);
-
+            
         } catch (error) {
             Logger.error(`query to make new DB entry for org:${params.orgName} failed\n`, error);
             throw error;
@@ -125,8 +125,8 @@ module.exports = class DatabaseService {
                 limit: 1
             }).then(async function(result) {
 
-                console.log('org retrieve');    //////////////////
-                console.log(result.get(config.dbTables.organization.auth_token));
+                // console.log('org retrieve');    //////////////////
+                // console.log(result.get(config.dbTables.organization.auth_token));
 
                 org = await dbResultToObject(result);
                 Logger.debug('Decrypting OAuth Token...')

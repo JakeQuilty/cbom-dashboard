@@ -8,7 +8,7 @@ module.exports = {
 
     //https://www.npmjs.com/package/winston#logging-levels
     logs: {
-        level: process.env.LOG_LEVEL || 'debug',
+        level: process.env.LOG_LEVEL || 'silly',
     },
     
     mysql: {
@@ -24,7 +24,7 @@ module.exports = {
     },
 
     dbTables: {
-        user:{
+        user: {
             name: 'user',
             user_id: 'user_id',
             user_name: 'user_name',
@@ -33,7 +33,7 @@ module.exports = {
             last_name: 'last_name',
             account_priv: 'account_priv'
         },
-        organization:{
+        organization: {
             name: "organization",
             org_id: "org_id",
             gh_id: "gh_id",
@@ -41,13 +41,26 @@ module.exports = {
             auth_token: "auth_token",
             user_id: "user_id"
         },
-        repository:{
+        repository: {
             name: 'repository',
             repo_id: 'repo_id',
             repo_name: 'repo_name',
             default_branch: 'default_branch',
             org_id: 'org_id'
         },
+        fileType: {
+            name: "file_type",
+            type_id: "type_id",
+            language_name: "language_name"
+        },
+        dependencyFile: {
+            name: 'dependency_file',
+            depfile_id: 'depfile_id',
+            file_name: 'file_name',
+            file_path: 'file_path',
+            repo_id: 'repo_id',
+            type_id: 'type_id'
+        }
     },
     // if you don't like it. run in production mode.
     encryption: {

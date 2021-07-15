@@ -3,18 +3,6 @@ const SequelizeMock = require('sequelize-mock');
 const proxyquire = require('proxyquire');
 const DatabaseService = require('../services/DatabaseService');
 
-
-// OrgMock.$queueResult(OrgMock.build({
-//     org_id: '5',
-//     gh_id: '12345',
-//     org_name: 'testorg',
-//     auth_token: {
-//         iv: '69e4afbe141a94093c2b4e522e6f6818',
-//         content: 'f67623c78fcb900649b022dee5e53ee4b80f821d6314cf878d55521b35933e8063c8d0ee48fda9db'
-//     },
-//     user_id: '1'
-// }));
-
 // setup mock db
 const dbMock = new SequelizeMock({
     options: {
@@ -48,16 +36,7 @@ var RepoMock = dbMock.define('Repository', {
     org_id: '5'
 });
 
-// const modelsMock = proxyquire('../models/db', {
-//     './models/user.model': { UserMock },
-//     './models/organization.model': { OrgMock },
-//     './models/repository.model': { RepoMock }
-// });
-
 describe('hooks', function() {
-    // before(function() {
-    // });
-
     afterEach(function() {
         UserMock.$clearQueue();
         OrgMock.$clearQueue();
@@ -76,9 +55,11 @@ describe('hooks', function() {
                 let expected = 1;
                 assert.strictEqual(result, expected);
             });
-            it('should create with expected values', function(){
-                
-            })
+            // it('should create with expected values', function(){
+            //     let expected = {
+            //         org_id: 
+            //     }
+            // });
         })
     });
 
@@ -89,7 +70,7 @@ describe('hooks', function() {
                 org_id: '5',
                 gh_id: '12345',
                 org_name: 'testorg',
-                auth_token: {
+                auth_token: { // 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
                     iv: '69e4afbe141a94093c2b4e522e6f6818',
                     content: 'f67623c78fcb900649b022dee5e53ee4b80f821d6314cf878d55521b35933e8063c8d0ee48fda9db'
                 },
@@ -106,18 +87,17 @@ describe('hooks', function() {
         });
 
         describe('no duplicate', function() {
-            // find out how to send a value to the nested class in an object
-            // let modelsMock = new class {
-            //     Organization = {
-            //         async findAll(params) {
-            //             return [];
-            //         }
-            //     }
-            // };
-
+            // cant figure out how to make the mock not send back a default value
+            let modelsMock = new class {
+                Organization = {
+                    async findOne(params) {
+                        return null;
+                    }
+                }
+            };
 
             let expected = false;
-            let dbService = new DatabaseService(dbMock.models);
+            let dbService = new DatabaseService(modelsMock);
             it('should return false', async function() {
                 let params = {orgName: 'testOrg', userID: '1'};
                 assert.strictEqual(await dbService.orgExists(params), expected);

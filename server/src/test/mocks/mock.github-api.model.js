@@ -6,11 +6,13 @@ module.exports = class GitHubModel {
         // default values
         var config = extend({
             validateToken: true,
-            validateOrg: true
+            validateOrg: true,
+            getOrgGithubID: '12345'
         }, params);
 
         this.validateToken_ = config.validateToken;
         this.validateOrg_ = config.validateOrg;
+        this.getOrgGithubID_ = config.getOrgGithubID;
     }
 
     async validateToken(token){
@@ -19,6 +21,10 @@ module.exports = class GitHubModel {
 
     async validateOrg(authToken, orgName) {
         return this.validateOrg_;
+    }
+
+    async getOrgGithubID(authToken, orgName) {
+        return this.getOrgGithubID_;
     }
 
 }

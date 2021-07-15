@@ -36,4 +36,15 @@ describe('CreateNewOrg()', function() {
             assert.deepStrictEqual(await orgService.CreateNewOrg(reqBody), expected);
         })
     });
+
+    describe('successful run', function() {
+        let expected = {status: 200, data: {name: 'testorg'}};
+        let ghMock = new MockGitHubModel({});
+        let dbMock = new MockDBService({orgExists: false});
+        let orgService = new OrgService(ghMock,dbMock);
+        it('should return with 200', async function() {
+            let reqBody = {name: 'testorg', ghAuthToken: 'asdlkfksa3123gfdsnv', userID: '1'};
+            assert.deepStrictEqual(await orgService.CreateNewOrg(reqBody), expected);
+        })
+    });
 });

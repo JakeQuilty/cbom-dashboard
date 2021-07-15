@@ -4,6 +4,31 @@ const { Octokit } = require("octokit");
 // Each authenticated token gets 5000 requests an hour
 
 module.exports = class GitHubService {
+    async getOctokit(authToken){
+        return new Octokit({
+            auth: "token " + authToken,
+            throttle: {
+              onRateLimit: (retryAfter, options) => {
+                octokit.log.warn(
+                  `Request quota exhausted for request ${options.method} ${options.url}`
+                );
+          
+                // Retry twice after hitting a rate limit error, then give up
+                if (options.request.retryCount <= 2) {
+                  console.log(`Retrying after ${retryAfter} seconds!`);
+                  return true;
+                }
+              },
+              onAbuseLimit: (retryAfter, options) => {
+                // does not retry, only logs a warning
+                octokit.log.warn(
+                  `Abuse detected for request ${options.method} ${options.url}`
+                );
+              },
+            },
+          });
+    }
+
     async validateToken(authToken){
         Logger.debug("Validating token...");
         try{
@@ -126,62 +151,6 @@ module.exports = class GitHubService {
             throw error;
         }
     }
-
-    /*
-    Retrieves a list of all the files in the repo
-    Params:
-        - orgName: name of GitHub organization
-        - repoName: name of GitHub repository
-        - defaultBranch: default branch of the repo (ex. master)
-        - authToken: GitHub OAuth Token
-    Returns:
-        Array of strings on the file names
-    */
-    async getRepoFilesList(params){
-        const octokit = await getOctokit(params.authToken);
-
-        // check for missing params
-        if (
-            params.orgName === undefined || 
-            params.authToken === undefined ||
-            params.repoName === undefined ||
-            params.defaultBranch === undefined) {
-            let e = 'getRepoFilesList() called without valid params';
-
-            // redact authToken from logs
-            if (params.authToken !== undefined) {
-                params.authToken = "NOT UNDEFINED - VALUE REDACTED"
-            }
-            Logger.error(e + `orgName: ${params.orgName}\nrepoName: ${params.repoName}\n
-            defaultBranch: ${params.defaultBranch}\nauthToken: ${params.authToken}`);
-            throw new Error(e);
-        }
-
-        try {
-            // if truncated = true, we're missing files
-            // https://docs.github.com/en/rest/reference/git#get-a-tree
-            const commitData = await octokit.request('GET /repos/{owner}/{repo}/commits/{default_branch}', {
-                owner: params.orgName,
-                repo: params.repoName,
-                default_branch: params.defaultBranch
-              });
-
-            const sha = commitData.data.sha;
-
-            const result = await octokit.request('GET /repos/{owner}/{repo}/git/trees/{tree_sha}?recursive=true', {
-                owner: params.orgName,
-                repo: params.repoName,
-                tree_sha: sha
-              });
-            
-            return result.data.tree;
-
-        } catch (error) {
-            Logger.error(`getRepoFilesList() failed to get files repo:${params.repoName}`);
-            throw error;
-        }
-
-    }
 }
 
 async function getOrgAllReposData(orgName, authToken) {
@@ -193,29 +162,4 @@ async function getOrgAllReposData(orgName, authToken) {
             per_page: 100   
         }
     );
-}
-
-async function getOctokit(authToken){
-    return new Octokit({
-        auth: "token " + authToken,
-        throttle: {
-          onRateLimit: (retryAfter, options) => {
-            octokit.log.warn(
-              `Request quota exhausted for request ${options.method} ${options.url}`
-            );
-      
-            // Retry twice after hitting a rate limit error, then give up
-            if (options.request.retryCount <= 2) {
-              console.log(`Retrying after ${retryAfter} seconds!`);
-              return true;
-            }
-          },
-          onAbuseLimit: (retryAfter, options) => {
-            // does not retry, only logs a warning
-            octokit.log.warn(
-              `Abuse detected for request ${options.method} ${options.url}`
-            );
-          },
-        },
-      });
 }

@@ -1,6 +1,5 @@
 const Logger = require("../loaders/logger");
 const config = require("../config");
-const { isDepFile } = require("../utils/file.util");
 
 // NEED TO MOVE ALL HTTP STUFF OUT OF THE SERVICE LAYER
 // https://www.codementor.io/@evanbechtol/node-service-oriented-architecture-12vjt9zs9i
@@ -8,9 +7,11 @@ const { isDepFile } = require("../utils/file.util");
 
 
 module.exports = class OrgService {
-    constructor(GitHubService, DatabaseService){
+    constructor(GitHubService, DatabaseService, RepoService){
+        // https://www.npmjs.com/package/typedi ??
         this.ghService = GitHubService;
         this.dbService = DatabaseService;
+        this.repoService = RepoService;
     }
     
     async CreateNewOrg(org){
@@ -20,6 +21,7 @@ module.exports = class OrgService {
 
         // ------------ SHOULD THIS BLOCK BE MIDDLEWARE?? ----------------
         // NO? - because you don't go from controller straight to dataccess layer?
+        // YES? - is middleware considered service layer enough to do that?
 
         // make sure token and org are valid
         if (!await this.ghService.validateToken(ghAuthToken)){
@@ -52,7 +54,7 @@ module.exports = class OrgService {
         })
         Logger.info(`Org:${orgName} added succesfully`);
 
-        return {status: 200, data: {name: orgName}}
+        return {status: 200, data: {name: orgName}};
     }
 
     async ScanOrg(org){
@@ -94,46 +96,21 @@ module.exports = class OrgService {
             orgName: orgData[[config.dbTables.organization.org_name]]
         });
 
-        // DO THIS BUT WITH REPO OBJECTS INSTEAD?
-
-        // This is ugly, but since there is a ton of data I don't want to keep passing it back and forth
         for (const repo of repos){
-            // make sure repo is not duplicate
-            // this will double the db calls on initial org scan :/
-            //
-            // should use find or create instead
-            // https://sequelize.org/v4/manual/tutorial/models-usage.html#-findorcreate-search-for-a-specific-element-or-create-it-if-not-available
-            let repoID;
-            if (!await this.dbService.repoExists({
+            let repoData = await this.repoService.create({
                 repoName: repo.name,
-                orgID: orgID
-            })){
-                repoID = await this.dbService.repoCreateEntry({
-                    repoName: repo.name,
-                    defaultBranch: repo.branch,
-                    orgID: orgID
-                });
-            } // else check if default branch needs to be updated while we have the info??? - extra db calls will make it slower
+                orgID: orgID,
+                defaultBranch: repo.branch
+            });
 
-            const fileTree = await this.ghService.getRepoFilesList({ // 2 API reqs PER repo smh
+            const fileTree = await this.repoService.getFilesList({ // 2 API reqs PER repo smh
                 orgName: orgName,
                 repoName: repo.name,
                 defaultBranch: repo.branch,
                 authToken: authToken
             });
 
-            for (const file of fileTree){
-                if (await isDepFile(file.type, file.path)){
-                    console.log(file);
-                    // pass to depservice to determine what kinda file and parse - return object of deps
-                    // dbService - put all in db
-                }
-
-                // we need to check path for dep file and keep sha for pulling down the depfile blob
-                // get blob only works with up to 100MB - check size before pulling?
-            }
-
-
+            this.repoService.scan(repoData[config.dbTables.repository.repo_id], fileTree);
         }
         
 
