@@ -1,5 +1,5 @@
 const { Sequelize, DataTypes, Model } = require('sequelize');
-const config = require('../../config');
+const config = require('../../../config');
 
 module.exports = (sequelize) => {
 
@@ -20,7 +20,7 @@ module.exports = (sequelize) => {
             allowNull: false
         },
         [config.dbTables.organization.auth_token]: {
-            type: DataTypes.STRING, // THIS WILL NEED TO CHANGE TO STRING(number) when I figure out encyrption length
+            type: DataTypes.JSON,
             allowNull: false
         },
         [config.dbTables.organization.user_id]: {
