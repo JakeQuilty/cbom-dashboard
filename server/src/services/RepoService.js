@@ -4,7 +4,8 @@ const Logger = require('../loaders/logger');
 const dbRow = {
     repo_name: config.dbTables.repository.repo_name,
     org_id: config.dbTables.repository.org_id,
-    default_branch: config.dbTables.repository.default_branch
+    default_branch: config.dbTables.repository.default_branch,
+    depfile_id: config.dbTables.dependencyFile.depfile_id
 }
 
 var languageIDTable = undefined;
@@ -121,6 +122,7 @@ module.exports = class RepoService {
                 }
 
                 //scan
+                this.dfService.scan(depFileData[dbRow.depfile_id], dependencies);
 
             } catch (error) {
                 Logger.error(`RepoService.scan failed to scan file: ${file.path}`, error);

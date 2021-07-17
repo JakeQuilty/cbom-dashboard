@@ -60,7 +60,7 @@ CREATE TABLE dependency
 (
     dep_id INT(64) NOT NULL AUTO_INCREMENT,
     dep_name VARCHAR(255) NOT NULL,
-    dep_version VARCHAR(16) NOT NULL,
+    dep_version VARCHAR(255) NOT NULL,
     scan_date DATE NOT NULL,
     depfile_id INT(32) NOT NULL,
 

@@ -26,6 +26,7 @@ const modelDefiners = [
     require('./models/repository.model'),
     require('./models/dependencyfile.model'),
     require('./models/filetype.model'),
+    require('./models/dependency.model')
 ]
 
 for (const modelDefiner of modelDefiners) {

@@ -5,42 +5,31 @@ module.exports = (sequelize) => {
 
     sequelize.define('Dependency', {
         // get table names from config
-        [config.dbTables.dependencyFile.dep_id]: {
+        [config.dbTables.dependency.dep_id]: {
             type: DataTypes.INTEGER,
             autoIncrement: true,
             primaryKey: true,
             allowNull: false
         },
-        [config.dbTables.dependency.]: {
+        [config.dbTables.dependency.dep_name]: {
             type: DataTypes.STRING(255),
             allowNull: true
         },
-        [config.dbTables.dependencyFile.file_path]: {
+        [config.dbTables.dependency.dep_version]: {
             type: DataTypes.STRING(255),
             allowNull: true
         },
-        [config.dbTables.dependencyFile.repo_id]: {
-            type: DataTypes.INTEGER,
-            references: config.dbTables.repository.name,
-            referencesKey: config.dbTables.repository.repo_id,
+        [config.dbTables.dependency.scan_date]: {
+            type: DataTypes.DATE,
             allowNull: false
         },
-        [config.dbTables.dependencyFile.type_id]: {
+        [config.dbTables.dependency.depfile_id]: {
             type: DataTypes.INTEGER,
-            references: config.dbTables.fileType.name,
-            referencesKey: config.dbTables.fileType.type_id,
+            references: config.dbTables.dependencyFile.name,
+            referencesKey: config.dbTables.dependencyFile.depfile_id,
             allowNull: false
         }
     }, {
-        tableName: config.dbTables.dependencyFile.name
-
+        tableName: config.dbTables.dependency.name
     });
 };
-
-/*
-dep_id INT(64) NOT NULL AUTO_INCREMENT,
-dep_name VARCHAR(255) NOT NULL,
-dep_version VARCHAR(16) NOT NULL,
-scan_date DATE NOT NULL,
-depfile_id INT(32) NOT NULL,
-*/

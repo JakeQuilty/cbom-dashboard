@@ -1,6 +1,7 @@
 const Logger = require('../loaders/logger');
 const path = require('path');
 const config = require('../config');
+const { getDate } = require('../utils/db.util');
 
 const dbRow = {
     depfile_id: config.dbTables.dependencyFile.depfile_id,
@@ -26,6 +27,12 @@ module.exports = class DependencyFileService {
         this.dpService = DependencyService;
     }
     
+    /**
+     * Determines if a filepath is to a dependency file
+     * @param {string} type 
+     * @param {string} fullPath 
+     * @returns true or false
+     */
     async isDepFile(type, fullPath) {
         if (type !== 'blob') return false;
 
@@ -106,14 +113,26 @@ module.exports = class DependencyFileService {
 
     }
 
-    async scan(params) {
+    async scan(depFileID, dependencies) {
 
-        for (const dep in params.dependencies) {
-            this.dpService.create({
+        const date = getDate();
 
-            });
+        for (const dep of dependencies) {
+            console.log(dep);
+            try {
+                this.dpService.create({
+                    depName: dep.name,
+                    version: dep.version,
+                    scanDate: date,
+                    depFileID: depFileID
+                });
+            } catch (error) {
+                Logger.error(`Dependency: ${dep.name} from ${depFileID} failed to create`, error);
+                throw error;
+            }
+
         }
-
+        return true; ///////// ??????????
     }
 
     /**
