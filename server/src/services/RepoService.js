@@ -7,19 +7,20 @@ const dbRow = {
     default_branch: config.dbTables.repository.default_branch
 }
 
+var languageIDTable = undefined;
+
 module.exports = class RepoService {
-    constructor (GitHubService, DatabaseModels, DepedencyFileService) {
+    constructor (GitHubService, DatabaseModels, DepedencyFileService, FileTypeService) {
         this.ghService = GitHubService;
         this.models = DatabaseModels;
         this.dfService = DepedencyFileService;
+        this.ftService = FileTypeService;
     }
 
     /**
      * Creates a repo in the database if it doesn't already exist
      * and updates the default branch if it is out of date
-     * @param {number} orgID
-     * @param {string} repoName
-     * @param {string} defaultBranch
+     * @param {Object} params orgID, repoName, defaultBranch
      * @returns Object of created repo
      * ex: {"repo_id":226,"default_branch":"master","repo_name":"autoparse","org_id":7}
      */
@@ -72,44 +73,64 @@ module.exports = class RepoService {
 
     /**
      * Scans a repository
-     * @param {number} repoID 
-     * @param {Object} fileTree 
-     * @returns idk yet maybe nothing
+     * @param {Object} params repoID, orgName, repoName, fileTree, authToken
+     * @returns array of files that failed to scan
      */
-    async scan(repoID, fileTree) {
-        //check params
-        try {
-            const schema = require('../utils/schema/schema.RepoService.scan');
-            await schema.validateAsync(params);
+    async scan(params) {
 
-        } catch (error) {
-            Logger.error("RepoServices.create() called with invalid parameters");
-            throw error;
+        let failedFiles = [];
+
+        // this might be a little messy, but need a way to make sure this only gets called once
+        if (languageIDTable === undefined) {
+            languageIDTable = await this.ftService.getAllLanguageID()
         }
 
-        for (const file of fileTree){
-            if (!await this.dfService.isDepFile(file.type, file.path)){
+        Logger.debug(`Beginning file scans for Repo: ${params.repoName}`);
+        for (const file of params.fileTree){
+            try {
+                if (!await this.dfService.isDepFile(file.type, file.path)){
+                    continue;
+                }
+                // get file language and parser
+                let { language, parser } = await this.dfService.getParser(file.path);
+                let typeID = languageIDTable[language];
+
+                Logger.silly(`Scanning Repo: ${params.repoName} File: ${file.path}, 
+                    Language: ${language}, typeID: ${typeID}`);
+
+                // create
+                let depFileData = await this.dfService.create({
+                    repoID: params.repoID,
+                    typeID: typeID,
+                    filePath: file.path,
+                });
+
+                // get blob
+                const blob = await this.dfService.getBlob({
+                    orgName: params.orgName,
+                    repoName: params.repoName,
+                    sha: file.sha,
+                    authToken: params.authToken
+                });
+
+                // parse
+                const dependencies = await parser(blob);
+                if (dependencies === null) {
+                    Logger.debug(`Repo:${params.repoName} File: ${file.path} does not have any dependencies`);
+                    continue
+                }
+
+                //scan
+
+            } catch (error) {
+                Logger.error(`RepoService.scan failed to scan file: ${file.path}`, error);
+                failedFiles.push({file: file.path, error: error});
                 continue;
             }
-            // get file language and parser
-            let { language, parser } = await this.dfService.determineLanguage(file.path);
-            // get file_type id with language
-            let typeID = await this.dfService.getLanguageID()
-            // create
-            let depFileData = this.dfService.create({
-                repoID: repoID,
-                fileTypeID: typeID,
-                filePath: file.path,
-            });
-            //get blob
-            //parse
-            //scan
-
-            // we need to check path for dep file and keep sha for pulling down the depfile blob
-            // get blob only works with up to 100MB - check size before pulling?
         }
 
-        return true;
+        console.log(failedFiles); /////////
+        return failedFiles;
     }
 
     /**
@@ -131,23 +152,25 @@ module.exports = class RepoService {
             throw error;
         }
 
-        const octokit = await this.ghService.getOctokit();
+        Logger.silly(`Getting FileList for ${params.orgName}:${params.repoName}:${params.defaultBranch}`)
+        const octokit = await this.ghService.getOctokit(params.authToken);
         try {
             // if truncated = true, we're missing files
             // https://docs.github.com/en/rest/reference/git#get-a-tree
-            const commitData = await octokit.request('GET /repos/{owner}/{repo}/commits/{default_branch}', {
+            // const commitData = await octokit.request('GET /repos/{owner}/{repo}/commits/{default_branch}', {
+            //     owner: params.orgName,
+            //     repo: params.repoName,
+            //     default_branch: params.defaultBranch
+            //   });
+
+            // const sha = commitData.data.sha;
+
+            const result = await octokit.request('GET /repos/{owner}/{repo}/git/trees/{default_branch}?recursive=true', {
                 owner: params.orgName,
                 repo: params.repoName,
                 default_branch: params.defaultBranch
               });
 
-            const sha = commitData.data.sha;
-
-            const result = await octokit.request('GET /repos/{owner}/{repo}/git/trees/{tree_sha}?recursive=true', {
-                owner: params.orgName,
-                repo: params.repoName,
-                tree_sha: sha
-              });
             
             return result.data.tree;
 

@@ -90,40 +90,65 @@ module.exports = class OrgService {
             return {status: 409, data: {message: "invalid organization"}};
         }
 
+        let failures = [];
+
         // get list of org's repos - GitHubService
         let repos = await this.ghService.getOrgReposList({
             authToken: authToken,
             orgName: orgData[[config.dbTables.organization.org_name]]
         });
 
+        Logger.debug(`Beginning repo scans`);
         for (const repo of repos){
-            let repoData = await this.repoService.create({
-                repoName: repo.name,
-                orgID: orgID,
-                defaultBranch: repo.branch
-            });
+            try {
+                let repoData = await this.repoService.create({
+                    repoName: repo.name,
+                    orgID: orgID,
+                    defaultBranch: repo.branch
+                });
 
-            const fileTree = await this.repoService.getFilesList({ // 2 API reqs PER repo smh
-                orgName: orgName,
-                repoName: repo.name,
-                defaultBranch: repo.branch,
-                authToken: authToken
-            });
+                // 1 API req per repo
+                const fileTree = await this.repoService.getFileList({
+                    orgName: orgName,
+                    repoName: repo.name,
+                    defaultBranch: repo.branch,
+                    authToken: authToken
+                });
 
-            this.repoService.scan(repoData[config.dbTables.repository.repo_id], fileTree);
+                this.repoService.scan({
+                    repoID: repoData[config.dbTables.repository.repo_id],
+                    fileTree: fileTree,
+                    orgName: orgName,
+                    repoName: repo.name,
+                    authToken: authToken
+                    }).then(function (failedFiles) {
+                    if (Object.entries(failedFiles).length > 0){
+                        failures.push({
+                            repo: [repo.name],
+                            files: failedFiles,
+                            scanned: true,
+                            error: null
+                        });
+                    }
+                })
+            } catch (error) {
+                Logger.error(`Failure to scan - Repo: ${repo.name}`, error);
+                failures.push({
+                    repo: [repo.name],
+                    files: {},
+                    scanned: false,
+                    error: error
+                });
+            }
         }
-        
-
-        // foreach repo
-        //      check if repo exists in db
-        //      store in db - keep track of id
-        //      get files - githubservice
-        //      foreach file
-        //          see if file is a dep file - scan service? has parsers and scans for dep filess
-        //          if depfile, parse and store in db
 
         // return scan data on a different list endpoint
         // can be used when rendering in a user that already has data in db
+        for (const fail in failures){
+            console.log(fail);
+            console.log(JSON.stringify(fail));
+        }
+        Logger.info(`Org: ${orgName} scanned successfully`);
         return {status: 200, data: {name: orgName}};
     }
 

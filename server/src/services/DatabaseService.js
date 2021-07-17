@@ -83,12 +83,12 @@ module.exports = class DatabaseService {
                 [config.dbTables.organization.auth_token]: encryptedToken,
                 [config.dbTables.organization.user_id]: params.userID
             });
-            
+
         } catch (error) {
             Logger.error(`query to make new DB entry for org:${params.orgName} failed\n`, error);
             throw error;
         }
-        return org.id;
+        return org[config.dbTables.organization.org_id];
     }
 
     /*
@@ -124,10 +124,6 @@ module.exports = class DatabaseService {
                 },
                 limit: 1
             }).then(async function(result) {
-
-                // console.log('org retrieve');    //////////////////
-                // console.log(result.get(config.dbTables.organization.auth_token));
-
                 org = await dbResultToObject(result);
                 Logger.debug('Decrypting OAuth Token...')
                 let decryptedToken = decrypt(org[[config.dbTables.organization.auth_token]]);

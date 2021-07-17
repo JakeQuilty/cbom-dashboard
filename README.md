@@ -22,3 +22,9 @@ Start frontend
 `npm start`
 
 Start backend `npm run dev`
+
+### Logs
+
+Can be changed in config
+
+*Warning:* Silly mode will output _everything_... So say RIP to your terminal history 

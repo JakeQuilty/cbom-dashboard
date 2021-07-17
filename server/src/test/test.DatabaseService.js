@@ -10,62 +10,44 @@ const dbMock = new SequelizeMock({
         autoQueryFallback: false
     }
 });
-
-var UserMock = dbMock.define('User', {
-    user_id: '1',
-    user_name: 'root',
-    user_password: 'p@ssW0rd',
-    first_name: 'Jake',
-    last_name: 'Quilty',
-    account_priv: '0'
-});
-var OrgMock = dbMock.define('Organization', {
-    org_id: '',
-    gh_id: '',
-    org_name: '',
-    auth_token: {
-        iv: '',
-        content: ''
-    },
-    user_id: ''
-});
-var RepoMock = dbMock.define('Repository', {
-    repo_id: '200',
-    repo_name: 'test-repo',
-    default_branch: 'main',
-    org_id: '5'
+const OrgMock = dbMock.define('Organization', {
 });
 
-describe('hooks', function() {
-    afterEach(function() {
-        UserMock.$clearQueue();
-        OrgMock.$clearQueue();
-        RepoMock.$clearQueue();
-    })
+describe('DatabaseService', function() {
 
-    // This needs to stay first, because the org id will go up one with each
-    // test that adds to the mock db
     describe('orgCreateEntry()', function() {
-        describe('create entry for org in db', async function() {
-            let dbService = new DatabaseService(dbMock.models);
-
-            let params = {orgName: 'testOrg', userID: '1', githubID: '12345', token: 'jdaskcnjkasndjkfa'};
-            let result = await dbService.orgCreateEntry(params)
-            it('should return org id number',function() {
-                let expected = 1;
-                assert.strictEqual(result, expected);
-            });
-            // it('should create with expected values', function(){
-            //     let expected = {
-            //         org_id: 
-            //     }
-            // });
+        afterEach(function() {
+            OrgMock.$queryInterface.$clearResults();
         })
+
+        // have to skip this bc shitty mock won't handle if query is create
+        it.skip('should return org id number from db', async function() {
+            OrgMock.$queryInterface.$useHandler(function(query, queryOptions, done) {
+                if (query === 'create') {
+                    return OrgMock.build({
+                        org_id: 123,
+                        org_name: 'testOrg',
+                        userID: '1',
+                        githubID: '12345',
+                        token: 'jdaskcnjkasndjkfa'
+                    });
+                }
+            });
+
+            let dbService = new DatabaseService(dbMock.models);
+            let params = {orgName: 'testOrg', userID: '1', githubID: '12345', token: 'jdaskcnjkasndjkfa'};
+            let result = await dbService.orgCreateEntry(params);
+            let expected = 123;
+            assert.strictEqual(result, expected);
+        });
     });
 
     describe('orgExists()', function() {
-        describe('duplicate', function() {
+        afterEach(function() {
+            OrgMock.$clearQueue();
+        })
 
+        it('should return true when orgExists', async function() {
             OrgMock.$queueResult(OrgMock.build({
                 org_id: '5',
                 gh_id: '12345',
@@ -78,15 +60,12 @@ describe('hooks', function() {
             }));
 
             let expected = true;
-            //let modelsMock = new MockModels({});
             let dbService = new DatabaseService(dbMock.models);
-            it('should return true', async function() {
-                let params = {orgName: 'testorgs', userID: '1'};
-                assert.strictEqual(await dbService.orgExists(params), expected);
-            });
+            let params = {orgName: 'testorgs', userID: '1'};
+            assert.strictEqual(await dbService.orgExists(params), expected);
         });
 
-        describe('no duplicate', function() {
+        it('should return false when org doesnt exist', async function() {
             // cant figure out how to make the mock not send back a default value
             let modelsMock = new class {
                 Organization = {
@@ -98,10 +77,8 @@ describe('hooks', function() {
 
             let expected = false;
             let dbService = new DatabaseService(modelsMock);
-            it('should return false', async function() {
-                let params = {orgName: 'testOrg', userID: '1'};
-                assert.strictEqual(await dbService.orgExists(params), expected);
-            });
+            let params = {orgName: 'testOrg', userID: '1'};
+            assert.strictEqual(await dbService.orgExists(params), expected);
         });
     });
 

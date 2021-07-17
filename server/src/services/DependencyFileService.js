@@ -1,25 +1,29 @@
 const Logger = require('../loaders/logger');
 const path = require('path');
+const config = require('../config');
 
 const dbRow = {
-    // repo_name: config.dbTables.repository.repo_name,
-    // org_id: config.dbTables.repository.org_id,
-    // default_branch: config.dbTables.repository.default_branch
+    depfile_id: config.dbTables.dependencyFile.depfile_id,
+    file_name: config.dbTables.dependencyFile.file_name,
+    file_path: config.dbTables.dependencyFile.file_path,
+    file_sha: config.dbTables.dependencyFile.file_sha,
+    repo_id: config.dbTables.dependencyFile.repo_id,
+    type_id: config.dbTables.dependencyFile.type_id
 }
 
 const DEP_FILES = [
+    'package.json',
+    //'package-lock.json',
     //'Gemfile',
     //'Gemfile.lock',
     //'requirements.txt',
-    'package.json',
-    //'package-lock.json'
 ];
 
 module.exports = class DependencyFileService {
-    constructor (GitHubService, DatabaseModels, FileTypeService) {
+    constructor (GitHubService, DatabaseModels, DependencyService) {
         this.ghService = GitHubService;
         this.models = DatabaseModels;
-        this.FileTypeService = this.FileTypeService;
+        this.dpService = DependencyService;
     }
     
     async isDepFile(type, fullPath) {
@@ -29,47 +33,103 @@ module.exports = class DependencyFileService {
         return (DEP_FILES.includes(fileName));
     }
 
-    async create() {
+    /**
+     * Creates a dependency file in the database
+     * @param {Object} params repoID, filePath, typeID
+     * @returns the db depfile object
+     */
+    async create(params) {
+        try {
+            //check params
+            const schema = require('../utils/schema/schema.DependencyFileService.create');
+            await schema.validateAsync(params);
+
+        } catch (error) {
+            Logger.error("DependencyFileService.create() called with invalid parameters");
+            throw error;
+        }
+        let fileName = path.basename(params.filePath);
+
+        // create only if depfile doesn't already exist
+        try {
+            let depFile = await this.models.DependencyFile.findOrCreate({
+                where: {
+                    [dbRow.repo_id]: params.repoID,
+                    [dbRow.file_path]: params.filePath
+                },
+                defaults: {
+                    [dbRow.file_name]: fileName,
+                    [dbRow.type_id]: params.typeID
+                }
+            });
+
+            // return without the created value, because we don't need it
+            return depFile[0];
+
+        } catch (error) {
+            Logger.error("DependencyFileService.create() failed");
+            throw error;
+        }
 
     }
 
-    async getBlob() {
-        
+    /**
+     * Gets the file blob from GitHub and decodes it
+     * @param {Object} params orgName, repoName, sha, authToken
+     * @returns Plaintext file blob
+     */
+    async getBlob(params) {
+        //check params
+        try {
+            const schema = require('../utils/schema/schema.DependencyFileService.getBlob');
+            await schema.validateAsync(params);
+
+        } catch (error) {
+            Logger.error("DependencyFileService.getBlob() called with invalid parameters");
+            throw error;
+        }
+
+        Logger.silly(`Getting Blob for ${params.orgName}:${params.repoName}:${params.sha}`)
+        const octokit = await this.ghService.getOctokit(params.authToken);
+        try {
+            const encodedBlob = await octokit.rest.git.getBlob({
+                owner: params.orgName,
+                repo: params.repoName,
+                file_sha: params.sha
+            });
+            let buff = Buffer.from(encodedBlob.data.content, 'base64');
+            return buff.toString();
+        } catch (error) {
+            Logger.error("DependencyFileService.getBlob failed", error);
+            throw error;
+        }
+
     }
 
-    async parse(blob) {
-        let parser = determineParser(this.path);
+    async scan(params) {
+
+        for (const dep in params.dependencies) {
+            this.dpService.create({
+
+            });
+        }
 
     }
 
-    async scan() {
-
-    }
-
-    async determineLanguage(filePath) {
+    /**
+     * Determines what language and parser to use for
+     * a file path that leads to a dependency file
+     * @param {string} filePath 
+     * @returns {object} { language: string, parser: function() }
+     */
+    async getParser(filePath) {
         let fileName = path.basename(filePath)
         switch (fileName) {
             case 'package.json':
-                return {language: 'javascript', parser: require('./parsers/package-json.parser.js')};
-            case 'requirements.txt':
-                return {language: 'python', parser: 'NEED TO MAKE'};
+                const { parse } = require('./parsers/package-json.parser.js')
+                return {language: 'javascript', parser: parse};
+            // case 'requirements.txt':
+            //     return {language: 'python', parser: 'NEED TO MAKE'};
         }
     }
-
-    async getLanguageID() {
-        // do this here instead of in filetypeservice
-        // no need for another service that only has one method
-    }
-
 }
-
-/*
-backend_1   | {
-backend_1   |   path: 'package.json',
-backend_1   |   mode: '100644',
-backend_1   |   type: 'blob',
-backend_1   |   sha: 'efa06499f54f456d98a7568662d12ea7610fe112',
-backend_1   |   size: 2146,
-backend_1   |   url: 'https://api.github.com/repos/adobe/reactor-bridge/git/blobs/efa06499f54f456d98a7568662d12ea7610fe112'
-backend_1   | }
-*/

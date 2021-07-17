@@ -60,9 +60,17 @@ module.exports = {
             file_path: 'file_path',
             repo_id: 'repo_id',
             type_id: 'type_id'
+        },
+        dependency: {
+            name: 'dependency',
+            dep_id: 'dep_id',
+            dep_name: 'dep_name',
+            dep_version: 'dep_version',
+            scan_date: 'scan_date',
+            depfile_id: 'depfile_id'
         }
     },
-    // if you don't like it. run in production mode.
+    // please set your own.... this is just for testing
     encryption: {
         key: process.env.ENCRYTPION_KEY || "DL2iak8NtdIl9cCidAS23cdDcI2p012z"
     }

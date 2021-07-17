@@ -25,7 +25,7 @@ CREATE TABLE organization
 
 CREATE TABLE repository
 (
-    repo_id INT(8) NOT NULL AUTO_INCREMENT,
+    repo_id INT(16) NOT NULL AUTO_INCREMENT,
     repo_name VARCHAR(255) NOT NULL,
     default_branch VARCHAR(32) NOT NULL,
     org_id INT(8) NOT NULL,
@@ -44,10 +44,10 @@ CREATE TABLE file_type
 
 CREATE TABLE dependency_file
 (
-    depfile_id INT(8) NOT NULL AUTO_INCREMENT,
+    depfile_id INT(32) NOT NULL AUTO_INCREMENT,
     file_name VARCHAR(255),
     file_path VARCHAR(255),
-    repo_id INT(8) NOT NULL,
+    repo_id INT(16) NOT NULL,
     type_id INT(8) NOT NULL,
 
     PRIMARY KEY (depfile_id),
@@ -58,11 +58,11 @@ CREATE TABLE dependency_file
 
 CREATE TABLE dependency
 (
-    dep_id INT(8) NOT NULL AUTO_INCREMENT,
+    dep_id INT(64) NOT NULL AUTO_INCREMENT,
     dep_name VARCHAR(255) NOT NULL,
     dep_version VARCHAR(16) NOT NULL,
     scan_date DATE NOT NULL,
-    depfile_id INT(8) NOT NULL,
+    depfile_id INT(32) NOT NULL,
 
     PRIMARY KEY (dep_id),
     FOREIGN KEY (depfile_id) REFERENCES dependency_file (depfile_id) ON DELETE CASCADE ON UPDATE CASCADE

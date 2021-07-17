@@ -1,13 +1,13 @@
 const Joi = require('joi');
 
 const schema = Joi.object({
+    orgName: Joi.string()
+        .required(),
     repoName: Joi.string()
         .required(),
-    
-    orgID: Joi.number()
+    sha: Joi.string()
         .required(),
-
-    defaultBranch: Joi.string()
+    authToken: Joi.string()
         .required()
 });
 
