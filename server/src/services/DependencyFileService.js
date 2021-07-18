@@ -113,12 +113,17 @@ module.exports = class DependencyFileService {
 
     }
 
+    /**
+     * Creates db entries for all of the dependencies in the file
+     * @param {number} depFileID 
+     * @param {array} dependencies 
+     * @returns idk yet
+     */
     async scan(depFileID, dependencies) {
 
         const date = getDate();
 
         for (const dep of dependencies) {
-            console.log(dep);
             try {
                 this.dpService.create({
                     depName: dep.name,

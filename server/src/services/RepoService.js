@@ -36,6 +36,8 @@ module.exports = class RepoService {
             throw error;
         }
 
+        Logger.debug(`Creating Repo: ${params.repoName}`);
+
         // create only if repo doesn't already exist
         try {
             let repo = await this.models.Repository.findOrCreate({
@@ -131,7 +133,6 @@ module.exports = class RepoService {
             }
         }
 
-        console.log(failedFiles); /////////
         return failedFiles;
     }
 
