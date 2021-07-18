@@ -54,7 +54,7 @@ class App extends Component {
       if (e.target.name === 'inputOrg') {
           org.name = e.target.value;
       } else if (e.target.name === 'inputToken') {
-          org.ghAuthToken = e.target.value;
+          org.authToken = e.target.value;
       }
       console.log("ORG: ",org)
       this.setState({org})

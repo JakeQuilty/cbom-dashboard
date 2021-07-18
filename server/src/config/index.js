@@ -73,5 +73,12 @@ module.exports = {
     // please set your own.... this is just for testing
     encryption: {
         key: process.env.ENCRYTPION_KEY || "DL2iak8NtdIl9cCidAS23cdDcI2p012z"
+    },
+
+    ERROR_MESSAGES: {
+        internal: "Internal Server Error",
+        invalid_token: "Invalid GitHub OAuth Token",
+        invalid_org: "Invalid GitHub Organization",
+        org_does_not_exist: "Organization not in database"
     }
 }

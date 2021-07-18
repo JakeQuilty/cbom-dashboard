@@ -15,7 +15,6 @@ CREATE TABLE organization
     org_id INT(8) NOT NULL AUTO_INCREMENT,
     gh_id INT NOT NULL,
     org_name VARCHAR(255) NOT NULL,
-    -- need to  figure out encryption type for this
     auth_token JSON NOT NULL,
     user_id INT(8) NOT NULL,
 
