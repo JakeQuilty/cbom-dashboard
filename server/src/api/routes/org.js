@@ -26,7 +26,7 @@ module.exports = (app) => {
     route.post('/new',
         celebrate({
             [Segments.BODY]: Joi.object().keys({
-                userID: Joi.string().required(),
+                userID: Joi.number().required(),
                 name: Joi.string().required(),
                 authToken: Joi.string().required()
             }),
@@ -79,7 +79,7 @@ module.exports = (app) => {
     route.post('/scan',
         celebrate({
             [Segments.BODY]: Joi.object().keys({
-                userID: Joi.string().required(),
+                userID: Joi.number().required(),
                 name: Joi.string().required()
             }),
         }),
