@@ -1,12 +1,13 @@
 const Logger = require("../loaders/logger");
 const config = require("../config");
-const { encrypt, decrypt } = require('../utils/crypto.util');
+const { encrypt, decrypt, base64enc, base64dec } = require('../utils/crypto.util');
 
 const dbRows = {
     user_id: config.dbTables.organization.user_id,
     org_name: config.dbTables.organization.org_name,
     auth_token: config.dbTables.organization.auth_token,
-    gh_id: config.dbTables.organization.gh_id
+    gh_id: config.dbTables.organization.gh_id,
+    avatar_url: config.dbTables.organization.avatar_url
 }
 
 module.exports = class OrgService {
@@ -19,7 +20,7 @@ module.exports = class OrgService {
     
     /**
      * Creates an organization in the database
-     * @param {Object} params orgName, authToken, userID, ghID
+     * @param {Object} params orgName, authToken, userID, ghID, avatar
      * @returns Org data
      */
     async create(params){
@@ -37,6 +38,7 @@ module.exports = class OrgService {
         Logger.debug(`Creating Org: ${params.orgName}`);
 
         const encryptedToken = encrypt(params.authToken);
+        const base64AvatarURL = base64enc(params.avatar);
 
         let org = await this.models.Organization.findOrCreate({
             where: {
@@ -46,6 +48,7 @@ module.exports = class OrgService {
             defaults: {
                 [dbRows.gh_id]: params.ghID,
                 [dbRows.auth_token]: encryptedToken,
+                [dbRows.avatar_url]: base64AvatarURL
             }
         });
 
@@ -154,20 +157,20 @@ module.exports = class OrgService {
     }
 
     /**
-     * Gets the GitHub ID for the Org
+     * Gets the GitHub data for the Org
      * @param {string} orgName 
      * @param {string} authToken 
-     * @returns github id
+     * @returns github id and avatar_url
      */
-    async getGithubID(orgName, authToken) {
+    async getGithubData(orgName, authToken) {
         try {
             const octokit = await this.ghService.getOctokit(authToken);
             let result = await octokit.rest.orgs.get({
                 org: orgName
             });
             if (result.status == 200){
-                Logger.debug(`org:${orgName} GitHub ID retrieval: success`);
-                return result.data.id;
+                Logger.debug(`org:${orgName} GitHub Data: success`);
+                return {id: result.data.id, avatarUrl: result.data.avatar_url};
             }
             else{
                 Logger.error("Unknown result on GitHub ID retrieval\n", result);
@@ -205,9 +208,13 @@ module.exports = class OrgService {
 
             if (org === null) return null;
 
-            Logger.debug('Decrypting OAuth Token...')
-            let decryptedToken = decrypt(org[config.dbTables.organization.auth_token]);
-            org[config.dbTables.organization.auth_token] = decryptedToken;
+            Logger.debug('Decrypting OAuth Token...');
+            let decryptedToken = decrypt(org[dbRows.auth_token]);
+            org[dbRows.auth_token] = decryptedToken;
+
+            Logger.debug('Decoding Avatar URL...');
+            let decodedURL = base64dec(org[dbRows.avatar_url]);
+            org[dbRows.avatar_url] = decodedURL;
 
             return org;
         } catch (error) {

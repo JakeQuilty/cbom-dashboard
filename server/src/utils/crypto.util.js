@@ -21,7 +21,20 @@ const decrypt = (hash) => {
     return decrpyted.toString();
 };
 
+const base64enc = (plain) => {
+    const buff = Buffer.from(plain, 'utf-8');
+    const base64 = buff.toString('base64');
+    return base64;
+}
+
+const base64dec = (plain) => {
+    let buff = Buffer.from(plain, 'base64');
+    return buff.toString();
+}
+
 module.exports = {
     encrypt,
-    decrypt
+    decrypt,
+    base64enc,
+    base64dec
 };

@@ -55,24 +55,26 @@ module.exports = (app) => {
                     throw new Error(config.ERROR_MESSAGES.invalid_org);
                 }
 
-                const ghID = await orgService.getGithubID(req.body.name, req.body.authToken);
+                const ghData = await orgService.getGithubData(req.body.name, req.body.authToken);
 
                 const org = await orgService.create({
                     orgName: req.body.name,
                     authToken: req.body.authToken,
                     userID: req.body.userID,
-                    ghID: ghID
+                    ghID: ghData.id,
+                    avatar: ghData.avatarUrl
                 });
 
                 return res.status(200).json({
                     name: org[config.dbTables.organization.org_name],
-                    id: org[config.dbTables.organization.org_id]
+                    id: org[config.dbTables.organization.org_id],
+                    avatar: org[config.dbTables.organization.avatar_url]
                 });
 
             } catch(error) {
                 Logger.error(error);
-                const {status, data} = errorHandler(error);
-                return res.status(status).json({data});
+                const errRes = errorHandler(error);
+                return res.status(errRes.status).json({error: errRes.error});
             }
         });
 

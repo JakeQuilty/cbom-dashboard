@@ -39,7 +39,8 @@ module.exports = {
             gh_id: "gh_id",
             org_name: "org_name",
             auth_token: "auth_token",
-            user_id: "user_id"
+            user_id: "user_id",
+            avatar_url: "avatar_url"
         },
         repository: {
             name: 'repository',

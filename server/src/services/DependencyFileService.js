@@ -2,6 +2,7 @@ const Logger = require('../loaders/logger');
 const path = require('path');
 const config = require('../config');
 const { getDate } = require('../utils/db.util');
+const { base64dec } = require('../utils/crypto.util');
 
 const dbRow = {
     depfile_id: config.dbTables.dependencyFile.depfile_id,
@@ -104,8 +105,7 @@ module.exports = class DependencyFileService {
                 repo: params.repoName,
                 file_sha: params.sha
             });
-            let buff = Buffer.from(encodedBlob.data.content, 'base64');
-            return buff.toString();
+            return base64dec(encodedBlob.data.content);
         } catch (error) {
             Logger.error("DependencyFileService.getBlob failed", error);
             throw error;

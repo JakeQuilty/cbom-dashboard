@@ -17,6 +17,7 @@ CREATE TABLE organization
     org_name VARCHAR(255) NOT NULL,
     auth_token JSON NOT NULL,
     user_id INT(8) NOT NULL,
+    avatar_url VARCHAR(255) NOT NULL,
 
     PRIMARY KEY (org_id),
     FOREIGN KEY (user_id) REFERENCES user (user_id) ON DELETE CASCADE ON UPDATE CASCADE

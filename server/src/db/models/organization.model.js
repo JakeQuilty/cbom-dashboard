@@ -27,6 +27,10 @@ module.exports = (sequelize) => {
             type: DataTypes.INTEGER,
             references: config.dbTables.user.name,
             referencesKey: config.dbTables.user.user_id
+        },
+        [config.dbTables.organization.avatar_url]: {
+            type: DataTypes.STRING,
+            allowNull: false
         }
     }, {
         tableName: config.dbTables.organization.name
