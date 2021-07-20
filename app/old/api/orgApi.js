@@ -11,6 +11,7 @@ export async function addOrg(data) {
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify(data)
       })
+      console.log(response.body)//////////
     return await response.json();
 }
 

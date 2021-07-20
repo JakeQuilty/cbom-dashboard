@@ -1,5 +1,7 @@
+import React, { useState } from 'react';
 import { add } from '../../../api/org';
-import OrganizationsData from '../OrganizationsData';
+import { useSelector, useDispatch } from 'react-redux'
+import { addToOrgList } from '../../../features/orgsSlice';
 
 export function addOrg(data) {
     add(data).then( res => {
@@ -19,7 +21,8 @@ const notification = (response) => {
 }
 
 const updateOrgList = (response) => {
+    const orgs = useSelector((state) => state.orgs.value)
     if (response.status === 200) {
-        OrganizationsData.push({id: response.id, name: response.name})
+        dispatch()
     }
 }

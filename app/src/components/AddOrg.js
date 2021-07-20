@@ -1,7 +1,5 @@
 import React, { useState } from 'react'
-import { add } from '../../../api/org'
-import { useDispatch } from 'react-redux'
-import { addToOrgList } from '../../../features/orgsSlice'
+import { add } from '../api/org'
 import {
     CContainer,
     CCol,
@@ -15,32 +13,49 @@ import {
     CCardBody,
 } from '@coreui/react'
 
-const New = () => {
-    const [orgName, setOrg] = useState("")
-    const [oauthToken, setToken] = useState("")
-    const dispatch = useDispatch()
+const AddOrg = ({ onAdd }) => {
+    const [orgName, setOrg] = useState('')
+    const [oauthToken, setToken] = useState('')
 
-    const submitHandler = (e) => {
-        add({name: orgName, authToken: oauthToken}).then( res => {
+    async function onSubmit(e) {
+        e.preventDefault()
+
+        if (!orgName || !oauthToken) {
+            alert('Organization or OAuth Token is empty')
+            return
+        }
+
+        let res = await add({name: orgName, authToken: oauthToken})
+            console.log('RESPONSE')
+            console.log(res)//////////
+            console.log(res.status)
+            console.log(res.data.name)
             notification(res)
-            updateOrgList(res)
-        })
-    };
+            if (res.status === 200) {
+                onAdd({
+                    id: res.data.id,
+                    name: res.data.name,
+                    numRepos: res.data.numRepos,
+                    numDeps: res.data.numDeps,
+                    avatar: res.data.avatar
+                })
+            }
+
+        setOrg('')
+        setToken('')
+    }
 
     const notification = (response) => {
+        console.log('RESPONSE')
+        console.log(response)//////////
         let message = ""
         if (response.status === 200) {
             message = response.name + " added succesfully!";
         } else {
             message = "Error: " + response.error
         }
-        alert(message);
-    }
-    
-    const updateOrgList = (response) => {
-        if (response.status === 200) {
-            dispatch(addToOrgList({id: response.id, orgName: response.orgName}))
-        }
+        // alert(message)
+        alert(response)
     }
 
     return (
@@ -50,7 +65,7 @@ const New = () => {
                     <CCol sm="8">
                         <CCard>
                             <CCardBody>
-                                    <CForm onSubmit={submitHandler} action="" method="post" encType="multipart/form-data" className="form-horizontal">
+                                    <CForm onSubmit={onSubmit} action="" method="post" encType="multipart/form-data" className="form-horizontal">
                                         <CFormGroup>
                                         <CLabel htmlFor="text-input">Organization</CLabel>
                                         <CInput
@@ -87,4 +102,4 @@ const New = () => {
     )
 }
 
-export default New;
+export default AddOrg;

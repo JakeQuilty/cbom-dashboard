@@ -38,10 +38,10 @@ const Users = React.lazy(() => import('./views/users/Users'));
 const User = React.lazy(() => import('./views/users/User'));
 
 const Home = React.lazy(() => import('./components/home/Home'));
-const Organizations = React.lazy(() => import('./components/organizations/Organizations'));
+const Organizations = React.lazy(() => import('./components/Organizations'));
 const Add = React.lazy(() => import('./components/organizations/add/Add'));
 const Scan = React.lazy(() => import('./components/organizations/scan/Scan'));
-const List = React.lazy(() => import('./components/organizations/list/List'));
+const List = React.lazy(() => import('./components/Organizations'));
 
 const routes = [
   //{ path: '/', exact: true, name: 'Home' },
