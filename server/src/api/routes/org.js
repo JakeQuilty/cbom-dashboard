@@ -71,9 +71,9 @@ module.exports = (app) => {
                     avatar: org[config.dbTables.organization.avatar_url]
                 });
 
-            } catch(error) {
+            } catch (error) {
                 Logger.error(error);
-                const errRes = errorHandler(error);
+                const errRes = await errorHandler(error);
                 return res.status(errRes.status).json({error: errRes.error});
             }
         });
@@ -131,10 +131,9 @@ module.exports = (app) => {
                     failures: scan.failures
                 });
 
-            } catch(error) {
-                Logger.error("/api/org/scan failed: ", error);
-                const {status, data} = errorHandler(error);
-                return res.status(status).json(data);
+            } catch (error) {
+                const errRes = await errorHandler(error);
+                return res.status(errRes.status).json({error: errRes.error});
             }
         });
     

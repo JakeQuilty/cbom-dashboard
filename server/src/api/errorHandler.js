@@ -9,7 +9,6 @@ const ERROR_STATUS = {
 
 
 const errorHandler = async function (error) {
-
     // default to 500 Internal Server Error
     if (ERROR_STATUS[error.message] === undefined) {
         return {status: ERROR_STATUS[config.ERROR_MESSAGES.internal], error: config.ERROR_MESSAGES.internal};
