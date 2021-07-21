@@ -1,6 +1,8 @@
+import React, { useState } from 'react'
 import CIcon from '@coreui/icons-react'
 import { connect, useDispatch } from 'react-redux'
 import RepoList from './RepoList'
+import { apiScanOrg } from '../api/org'
 import {
     CCol,
     CRow,
@@ -10,7 +12,10 @@ import {
     CNavItem,
     CTabContent,
     CTabPane,
-    CNavLink
+    CNavLink,
+    CButton,
+    CSpinner,
+    CAlert
 } from '@coreui/react'
 
 const findOrg = (matchID, orgs) => {
@@ -21,12 +26,23 @@ const findOrg = (matchID, orgs) => {
     return undefined
 }
 
+// pagination isn't working bc of the changed url orgs => org/:id
+
 const Organization = ({match, orgs}) => {
+    const [isScanning, setIsScanning] = useState(false)
     const org = findOrg(match.params.id, orgs)
     const repos = org ? Object.entries(org.repos) : 
       [['id', (<span><CIcon className="text-muted" name="cui-icon-ban" /> Not found</span>)]]
 
     const dispatch = useDispatch()
+
+    const scanOrg = async (org) => {
+        setIsScanning(true)
+        await apiScanOrg({
+            name: org.name,
+        })
+        setIsScanning(false)
+    }
   
     // need a RepoList and a DependencyList components
     return (
@@ -42,7 +58,11 @@ const Organization = ({match, orgs}) => {
                 <CCol width="12" xs="2" sm="4" md="8" lg="8">
                     <h1>{org.name}</h1>
                 </CCol>
+                <CCol width="2" xs="2" sm="2" md="2" lg="2">
+                    {isScanning ? <CSpinner color="info" size="lg"/> : <CButton color= "info" size="lg" className="h3" onClick={()=> scanOrg(org)}>Scan</CButton>}
+                </CCol>
             </CRow>
+            <CRow alignHorizontal="center">{isScanning && <CAlert color="info" closeButton>Scanning {org.name}! This might take a bit...</CAlert>}</CRow>
             <CRow alignHorizontal="center">
                 <CCol lg={12} xl={6}>
                     <CTabs activeTab="repos">

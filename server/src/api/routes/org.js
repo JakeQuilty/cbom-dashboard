@@ -18,9 +18,21 @@ const route = express.Router();
 module.exports = (app) => {
     app.use('/org', route);
 
-    route.get('/list', (req, res) =>{
-        Logger.info("test");
-        return res.status(200).json({message: "hi"});
+    route.post('/list',celebrate({
+        [Segments.BODY]: Joi.object().keys({
+            userID: Joi.number().required()
+        }),
+    }),
+    async (req, res) =>{
+        try {
+            const orgService = new OrgService(null, models, null);
+            const orgList = await orgService.list(req.body);
+            return res.status(200).json(orgList);
+        } catch (error) {
+            Logger.error(error);
+            const errRes = await errorHandler(error);
+            return res.status(errRes.status).json({error: errRes.error});
+        }
     });
 
     route.post('/new',
@@ -68,7 +80,9 @@ module.exports = (app) => {
                 return res.status(200).json({
                     name: org[config.dbTables.organization.org_name],
                     id: org[config.dbTables.organization.org_id],
-                    avatar: org[config.dbTables.organization.avatar_url]
+                    avatar: org[config.dbTables.organization.avatar_url],
+                    numRepos: null,
+                    numDeps: null,
                 });
 
             } catch (error) {

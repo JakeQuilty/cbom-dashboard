@@ -3,11 +3,14 @@ const config = require("../config");
 const { encrypt, decrypt, base64enc, base64dec } = require('../utils/crypto.util');
 
 const dbRows = {
+    org_id: config.dbTables.organization.org_id,
     user_id: config.dbTables.organization.user_id,
     org_name: config.dbTables.organization.org_name,
     auth_token: config.dbTables.organization.auth_token,
     gh_id: config.dbTables.organization.gh_id,
-    avatar_url: config.dbTables.organization.avatar_url
+    avatar_url: config.dbTables.organization.avatar_url,
+    num_repos: config.dbTables.organization.num_repos,
+    num_deps: config.dbTables.organization.num_deps
 }
 
 module.exports = class OrgService {
@@ -23,7 +26,7 @@ module.exports = class OrgService {
      * @param {Object} params orgName, authToken, userID, ghID, avatar
      * @returns Org data
      */
-    async create(params){
+    async create(params) {
         try {
             //check params
             const schema = require('../utils/schema/schema.OrgService.create');
@@ -65,7 +68,7 @@ module.exports = class OrgService {
      * @param {Object} params orgName, userID, authToken, repoList, orgID
      * @returns An Object with orgName, and an array of failures
      */
-    async scan(params){
+    async scan(params) {
 
         let failures = [];
 
@@ -122,6 +125,29 @@ module.exports = class OrgService {
         }
         Logger.info(`Org: ${params.orgName} scanned successfully`);
         return {orgName: params.orgName, failures: failures};
+    }
+
+    // userID
+    async list(params) {
+        console.log(process.env.DB_ADDRESS)
+        const orgs = await this.models.Organization.findAll({
+            where: {
+                [dbRows.user_id]: params.userID
+            }
+        });
+
+        let orgList = []
+        for (const org of orgs) {
+            orgList.push({
+                id: org.dataValues[dbRows.org_id],
+                name: org.dataValues[dbRows.org_name],
+                avatar: org.dataValues[dbRows.avatar_url],
+                numRepos: org.dataValues[dbRows.num_repos],
+                numDeps: org.dataValues[dbRows.num_deps]
+            });
+        }
+
+        return orgList
     }
 
     /**

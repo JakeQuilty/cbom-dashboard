@@ -63,5 +63,5 @@
     "node": ">=10",
     "npm": ">=6"
   },
-  "proxy": "http://backend:3080"
+  "proxy": "http://localhost:3080"
 }

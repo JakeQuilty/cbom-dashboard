@@ -87,7 +87,10 @@ const routes = [
 
   { path: '/home', name: 'Home', component: Home },
   { path: '/orgs', exact: true, name: 'Organizations', component: Organizations},
-  { path: '/orgs/:id', exact: true, name: 'Org Details', component: Organization},
+  { path: '/org/:id', exact: true, name: 'Org Details', component: Organization},
+  // org/:id/repo/:id
+  // org/:id/dep/:id
+
   { path: '/orgs/add', name: 'Add', component: Add},
   { path: '/orgs/scan', name: 'Scan', component: Scan},
   { path: '/orgs/list', name: 'List', component: List}

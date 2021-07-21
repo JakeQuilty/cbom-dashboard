@@ -31,6 +31,14 @@ module.exports = (sequelize) => {
         [config.dbTables.organization.avatar_url]: {
             type: DataTypes.STRING,
             allowNull: false
+        },
+        [config.dbTables.organization.num_repos]: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
+        [config.dbTables.organization.num_deps]: {
+            type: DataTypes.INTEGER,
+            allowNull: true
         }
     }, {
         tableName: config.dbTables.organization.name

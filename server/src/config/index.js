@@ -40,7 +40,9 @@ module.exports = {
             org_name: "org_name",
             auth_token: "auth_token",
             user_id: "user_id",
-            avatar_url: "avatar_url"
+            avatar_url: "avatar_url",
+            num_repos: "num_repos",
+            num_deps: "num_deps"
         },
         repository: {
             name: 'repository',

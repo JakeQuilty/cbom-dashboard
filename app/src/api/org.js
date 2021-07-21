@@ -25,6 +25,12 @@ export async function add(data) {
     return response
 }
 
-export async function list() {
-    return await postReq('/api/org/list', {});
+export async function apiFetchOrgs() {
+    let response = await postReq('/api/org/list', {});
+    return response
+}
+
+export async function apiScanOrg(data) {
+    let response = await postReq('/api/org/scan', data);
+    return response
 }

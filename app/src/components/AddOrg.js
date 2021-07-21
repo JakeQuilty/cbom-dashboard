@@ -36,8 +36,8 @@ const AddOrg = () => {
 
     const updateOrgList = (res) => {
         if (res.status === 200) {
-            if (res.data.numRepos === undefined) res.data.numRepos = '-';
-            if (res.data.numDeps === undefined) res.data.numDeps = '-'
+            if (res.data.numRepos === null) res.data.numRepos = '-';
+            if (res.data.numDeps === null) res.data.numDeps = '-'
             // base64 decode
             res.data.avatar = atob(res.data.avatar)
             // check for id in orgList
