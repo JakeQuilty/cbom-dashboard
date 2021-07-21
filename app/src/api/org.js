@@ -8,12 +8,16 @@ async function addUserToReq(data) {
 
 async function postReq(path, data) {
     data = await addUserToReq(data);
-    const response = await fetch(path, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify(data)
-        });
-    return {data: await response.json(), status: response.status};
+    try {
+        const response = await fetch(path, {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(data)
+            });
+        return {data: await response.json(), status: response.status};
+    } catch (error) {
+        return {data: {error: "No response from server"}, status: 500}
+    }
 }
 
 export async function add(data) {

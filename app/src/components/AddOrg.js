@@ -1,4 +1,6 @@
 import React, { useState } from 'react'
+import { useDispatch } from 'react-redux'
+import { addOrgToList } from '../actions'
 import { add } from '../api/org'
 import {
     CContainer,
@@ -11,11 +13,45 @@ import {
     CButton,
     CCard,
     CCardBody,
+    CSpinner
 } from '@coreui/react'
 
-const AddOrg = ({ onAdd }) => {
+const AddOrg = () => {
     const [orgName, setOrg] = useState('')
     const [oauthToken, setToken] = useState('')
+    const [waiting, setWaiting] = useState(false)
+    const dispatch = useDispatch()
+
+    const notification = (response) => {
+        console.log('RESPONSE')
+        console.log(response)//////////
+        let message = ""
+        if (response.status === 200) {
+            message = response.data.name + " added succesfully!";
+        } else {
+            message = "Error: " + response.data.error
+        }
+        alert(message)
+    }
+
+    const updateOrgList = (res) => {
+        if (res.status === 200) {
+            if (res.data.numRepos === undefined) res.data.numRepos = '-';
+            if (res.data.numDeps === undefined) res.data.numDeps = '-'
+            // base64 decode
+            res.data.avatar = atob(res.data.avatar)
+            // check for id in orgList
+            console.log('addOrg: ', res.data)
+            dispatch(addOrgToList({
+                id: res.data.id,
+                name: res.data.name,
+                numRepos: res.data.numRepos,
+                numDeps: res.data.numDeps,
+                avatar: res.data.avatar,
+                repos: []
+            }))
+        }
+    }
 
     async function onSubmit(e) {
         e.preventDefault()
@@ -25,37 +61,15 @@ const AddOrg = ({ onAdd }) => {
             return
         }
 
+        setWaiting(true)
         let res = await add({name: orgName, authToken: oauthToken})
-            console.log('RESPONSE')
-            console.log(res)//////////
-            console.log(res.status)
-            console.log(res.data.name)
-            notification(res)
-            if (res.status === 200) {
-                onAdd({
-                    id: res.data.id,
-                    name: res.data.name,
-                    numRepos: res.data.numRepos,
-                    numDeps: res.data.numDeps,
-                    avatar: res.data.avatar
-                })
-            }
+        setWaiting(false)
+
+        notification(res)
+        updateOrgList(res)
 
         setOrg('')
         setToken('')
-    }
-
-    const notification = (response) => {
-        console.log('RESPONSE')
-        console.log(response)//////////
-        let message = ""
-        if (response.status === 200) {
-            message = response.name + " added succesfully!";
-        } else {
-            message = "Error: " + response.error
-        }
-        // alert(message)
-        alert(response)
     }
 
     return (
@@ -90,7 +104,7 @@ const AddOrg = ({ onAdd }) => {
                                         />
                                         </CFormGroup>
                                         <CRow alignHorizontal="center">
-                                            <CButton type="submit" color="info" size="lg" className="m-2">Add</CButton>
+                                            {waiting ? <CSpinner color="info" size="sm" /> : <CButton type="submit" color="info" size="lg" className="m-2">Add</CButton>}
                                         </CRow>
                                     </CForm>
                                 </CCardBody>

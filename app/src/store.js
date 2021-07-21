@@ -16,11 +16,18 @@
 // const store = createStore(changeState)
 // export default store
 
-import { configureStore } from '@reduxjs/toolkit'
-import orgsReducer from './features/orgsSlice'
+// import { configureStore } from '@reduxjs/toolkit'
+// import orgsReducer from './features/orgsSlice'
 
-export default configureStore({
-  reducer: {
-    orgsList: orgsReducer,
-  }
-})
+// export default configureStore({
+//   reducer: {
+//     orgList: orgsReducer,
+//   }
+// })
+
+import { createStore } from 'redux'
+import rootReducer from './reducers'
+
+const store = createStore(rootReducer)
+
+export default store;
