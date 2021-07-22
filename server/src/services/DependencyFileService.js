@@ -125,7 +125,7 @@ module.exports = class DependencyFileService {
 
         for (const dep of dependencies) {
             try {
-                this.dpService.create({
+                await this.dpService.create({
                     depName: dep.name,
                     version: dep.version,
                     scanDate: date,

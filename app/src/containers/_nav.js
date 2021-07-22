@@ -14,36 +14,10 @@ const _nav =  [
     icon: <CIcon name="cil-home" customClasses="c-sidebar-nav-icon"/>,
   },
   {
-    _tag: 'CSidebarNavDropdown',
-    name: 'Organizations',
-    route: '/orgs',
-    icon: 'cib-github',
-    _children: [
-      {
-        _tag: 'CSidebarNavItem',
-        name: 'Add',
-        to: '/orgs/add',
-        icon: 'cil-plus',
-      },
-      {
-        _tag: 'CSidebarNavItem',
-        name: 'Scan',
-        to: '/orgs/scan',
-        icon: <CIcon name="cil-fingerprint" customClasses="c-sidebar-nav-icon"/>,
-      },
-      {
-        _tag: 'CSidebarNavItem',
-        name: 'List',
-        to: '/orgs/list',
-        icon: 'cil-align-center',
-      },
-    ]
-  },
-  {
     _tag: 'CSidebarNavItem',
-    name: 'Typography',
-    to: '/theme/typography',
-    icon: 'cil-pencil',
+    name: 'Organizations',
+    to: '/org',
+    icon: 'cib-github',
   },
   {
     _tag: 'CSidebarNavTitle',
@@ -136,6 +110,12 @@ const _nav =  [
         to: '/base/tooltips',
       },
     ],
+  },
+  {
+    _tag: 'CSidebarNavItem',
+    name: 'Typography',
+    to: '/theme/typography',
+    icon: 'cil-pencil',
   },
   {
     _tag: 'CSidebarNavDropdown',

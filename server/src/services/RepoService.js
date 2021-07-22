@@ -124,7 +124,7 @@ module.exports = class RepoService {
                 }
 
                 //scan
-                this.dfService.scan(depFileData[dbRow.depfile_id], dependencies);
+                await this.dfService.scan(depFileData[dbRow.depfile_id], dependencies);
 
             } catch (error) {
                 Logger.error(`RepoService.scan failed to scan file: ${file.path}`, error);
@@ -134,6 +134,22 @@ module.exports = class RepoService {
         }
 
         return failedFiles;
+    }
+
+    /**
+     * Lists all repos in an org
+     * @param {Object} params orgID
+     * @returns an array of repos
+     */
+    async list(params) {
+        const repos = await this.models.Repository.findAll({
+            where: {
+                [dbRow.org_id]: params.orgID
+            }
+        });
+
+        return repos;
+
     }
 
     /**

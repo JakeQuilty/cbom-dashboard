@@ -1,40 +1,58 @@
 import React, { useState, useEffect } from 'react'
 import { useHistory, useLocation } from 'react-router-dom'
+import { connect, useDispatch, useSelector } from 'react-redux'
+import { apiFetchRepos } from '../api/repo'
+import { updateRepos } from '../actions'
 import {
     CCard,
     CCardHeader,
     CCardBody,
     CDataTable,
-    CPagination
+    CPagination,
+    CIcon
 } from '@coreui/react'
 
-const getReposFromProp = (repos) => {
-    let fixedRepos = []
-    for (const repo of repos) {
-        fixedRepos.push(repo[1])
-    }
-    return fixedRepos
-}
-
-const RepoList = ({org, repos, perPage}) => {
-    // need to take of preappened index in array
-    repos = getReposFromProp(repos)
-
+const RepoList = ({org, perPage}) => {
+    const repos = useSelector(state => org.repos)
     const history = useHistory()
     const queryPage = useLocation().search.match(/page=([0-9]+)/, '')
     const currentPage = Number(queryPage && queryPage[1] ? queryPage[1] : 1)
     const [page, setPage] = useState(currentPage)
-
+    const [isFetching, setIsFetching] = useState(false)
     const pageChange = newPage => {
-        currentPage !== newPage && history.push(`/orgs/list?page=${newPage}`)
+        currentPage !== newPage && history.push(`/org/${org.id}?page=${newPage}`)
+    }
+    const dispatch = useDispatch()
+
+    const updateRepoList = async (res) => {
+        if (res.status !== 200) {
+            return
+        }
+        dispatch(updateRepos({
+            id: org.id,
+            repos: res.data.repos
+        }))
+        //dispatch() // update numRepos
     }
     
     useEffect(() => {
         currentPage !== page && setPage(currentPage)
     }, [currentPage, page])
 
+    useEffect(() => {
+        async function fetchRepos() {
+            setIsFetching(true)
+            let res = await apiFetchRepos({orgID: org.id})
+            setIsFetching(false)
+
+            updateRepoList(res)
+        }
+        fetchRepos()
+    }, [])
+
     return (
         <CCard>
+            {isFetching ? <CCardBody><h1>Loading...</h1></CCardBody> : 
             <CCardBody>
                 <CDataTable
                     items={repos}
@@ -47,7 +65,7 @@ const RepoList = ({org, repos, perPage}) => {
                     itemsPerPage={perPage}
                     activePage={page}
                     clickableRows
-                    onRowClick={(item) => history.push(`/orgs/${item.id}`)}
+                    onRowClick={(item) => history.push(`/org/${item.id}`)}
                     sorter
                     tableFilter
                     />
@@ -59,8 +77,16 @@ const RepoList = ({org, repos, perPage}) => {
                     align="center"
                     />
                 </CCardBody>
+            }
         </CCard>
     )
 }
 
-export default RepoList
+function mapStateToProps(state) {
+    return {
+        repos: state.orgList
+    }
+}
+
+
+export default connect(mapStateToProps)(RepoList)

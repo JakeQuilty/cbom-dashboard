@@ -1,5 +1,4 @@
 import React, { useState } from 'react'
-import CIcon from '@coreui/icons-react'
 import { connect, useDispatch } from 'react-redux'
 import RepoList from './RepoList'
 import { apiScanOrg } from '../api/org'
@@ -26,25 +25,18 @@ const findOrg = (matchID, orgs) => {
     return undefined
 }
 
-// pagination isn't working bc of the changed url orgs => org/:id
-
 const Organization = ({match, orgs}) => {
     const [isScanning, setIsScanning] = useState(false)
     const org = findOrg(match.params.id, orgs)
-    const repos = org ? Object.entries(org.repos) : 
-      [['id', (<span><CIcon className="text-muted" name="cui-icon-ban" /> Not found</span>)]]
-
-    const dispatch = useDispatch()
 
     const scanOrg = async (org) => {
         setIsScanning(true)
         await apiScanOrg({
-            name: org.name,
+            name: org.name
         })
         setIsScanning(false)
     }
-  
-    // need a RepoList and a DependencyList components
+
     return (
         <CContainer>
             <CRow alignHorizontal="left">
@@ -69,21 +61,21 @@ const Organization = ({match, orgs}) => {
                         <CNav variant="tabs">
                             <CNavItem>
                                 <CNavLink data-tab="repos">
-                                    Repos
+                                    Repos ({org.numRepos})
                                 </CNavLink>
                             </CNavItem>
                             <CNavItem>
                                 <CNavLink data-tab="dependencies">
-                                    Dependencies
+                                    Dependencies ({org.numDeps})
                                 </CNavLink>
                             </CNavItem>
                         </CNav>
                         <CTabContent>
                             <CTabPane data-tab="repos">
-                                <RepoList org={org} repos={repos} perPage={50}/>
+                                <RepoList org={org} isScanning={isScanning} perPage={50}/>
                             </CTabPane>
                             <CTabPane data-tab="dependencies">
-                                <RepoList org={org} repos={repos} perPage={50}/>
+                                <RepoList org={org} perPage={50}/>
                             </CTabPane>
                         </CTabContent>
                     </CTabs>

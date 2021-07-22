@@ -23,8 +23,6 @@ const AddOrg = () => {
     const dispatch = useDispatch()
 
     const notification = (response) => {
-        console.log('RESPONSE')
-        console.log(response)//////////
         let message = ""
         if (response.status === 200) {
             message = response.data.name + " added succesfully!";
@@ -40,8 +38,6 @@ const AddOrg = () => {
             if (res.data.numDeps === null) res.data.numDeps = '-'
             // base64 decode
             res.data.avatar = atob(res.data.avatar)
-            // check for id in orgList
-            console.log('addOrg: ', res.data)
             dispatch(addOrgToList({
                 id: res.data.id,
                 name: res.data.name,

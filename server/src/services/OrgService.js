@@ -89,7 +89,7 @@ module.exports = class OrgService {
                     authToken: params.authToken
                 });
 
-                let failedFiles = this.repoService.scan({
+                let failedFiles = await this.repoService.scan({
                     repoID: repoData[config.dbTables.repository.repo_id],
                     fileTree: fileTree,
                     orgName: params.orgName,
@@ -97,6 +97,9 @@ module.exports = class OrgService {
                     authToken: params.authToken
                 });
                 
+                // this will not work bc we don't await the scan.
+                // maybe add fails to db when they happen instead?
+                // we could await each repo but that'd make times go up a lot
                 // append files that failed to scan to failures
                 if (Object.entries(failedFiles).length > 0){
                     failures.push({

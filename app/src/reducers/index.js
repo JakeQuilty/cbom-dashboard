@@ -1,4 +1,10 @@
-import { ADD_ORG } from "../constants/action-types"
+import {
+    ADD_ORG,
+    UPDATE_NUM_REPOS,
+    UPDATE_NUM_DEPS,
+    UPDATE_REPOS,
+    SIDEBARE_TOGGLE
+} from "../constants/action-types"
 
 const initialState = {
     orgList: [{
@@ -55,7 +61,8 @@ const initialState = {
       numDeps: '-',
       avatar: 'https://avatars.githubusercontent.com/u/4099049?s=200&v=4',
       repos: []
-  }]
+  }],
+  sidebarShow: 'responsive'
 }
 
 function rootReducer(state = initialState, action) {
@@ -73,6 +80,28 @@ function rootReducer(state = initialState, action) {
             return {
                 ...state,
                 orgList: [...state.orgList, action.payload]
+            }
+        
+        case UPDATE_REPOS:
+            let update = state.orgList
+            for (const org of update) {
+                if (org.id === action.payload.id) {
+                    org.repos = action.payload.repos
+                }
+            }
+            console.log(update)
+            return {
+                ...state,
+                orgList: update
+            }
+
+        case UPDATE_NUM_REPOS:
+            break
+
+        case SIDEBARE_TOGGLE:
+            return {
+                ...state,
+                sidebarShow: action.payload
             }
 
         default:

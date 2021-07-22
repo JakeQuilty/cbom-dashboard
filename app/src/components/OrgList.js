@@ -20,7 +20,7 @@ const OrgList = ({list, perPage}) => {
     const dispatch = useDispatch()
 
     const pageChange = newPage => {
-        currentPage !== newPage && history.push(`/orgs/list?page=${newPage}`)
+        currentPage !== newPage && history.push(`/org?page=${newPage}`)
     }
 
     const UpdateOrgList = (res) => {
@@ -64,7 +64,7 @@ const OrgList = ({list, perPage}) => {
 
     return (
         <CCard>
-            {isFetching ? <h1>Loading...</h1> : 
+            {isFetching ? <CCardBody><h1>Loading...</h1></CCardBody> : 
             <CCardBody>
             <CDataTable
                 items={list}
