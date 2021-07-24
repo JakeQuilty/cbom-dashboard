@@ -1,11 +1,14 @@
 const config = require('../config');
+const sequelize = require('../db');
 const Logger = require('../loaders/logger');
 
 const dbRow = {
+    repo_id: config.dbTables.repository.repo_id,
     repo_name: config.dbTables.repository.repo_name,
     org_id: config.dbTables.repository.org_id,
     default_branch: config.dbTables.repository.default_branch,
-    depfile_id: config.dbTables.dependencyFile.depfile_id
+    depfile_id: config.dbTables.dependencyFile.depfile_id,
+    num_deps: config.dbTables.repository.num_deps
 }
 
 var languageIDTable = undefined;
@@ -150,6 +153,24 @@ module.exports = class RepoService {
 
         return repos;
 
+    }
+
+    // should find a better way to do this without having to import sequelize.
+    // WARNING: this puts a param in the raw SQL. Make sure this is never user input
+    // repoID
+    async countDeps(params) {
+        const SQL = `SELECT * FROM dependency WHERE depfile_id IN (SELECT depfile_id FROM dependency_file WHERE repo_id=${params.repoID});`
+        const [results, metadata] = await sequelize.query(SQL);
+
+        const numDeps = results.length
+
+        await this.models.Repository.update({[dbRow.num_deps]: numDeps}, {
+            where: {
+                [dbRow.repo_id]: params.repoID
+            }
+        });
+
+        return numDeps;
     }
 
     /**

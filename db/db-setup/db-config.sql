@@ -30,6 +30,7 @@ CREATE TABLE repository
     repo_id INT(16) NOT NULL AUTO_INCREMENT,
     repo_name VARCHAR(255) NOT NULL,
     default_branch VARCHAR(32) NOT NULL,
+    num_deps INT(16),
     org_id INT(8) NOT NULL,
 
     PRIMARY KEY (repo_id),

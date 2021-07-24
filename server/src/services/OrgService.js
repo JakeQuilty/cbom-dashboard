@@ -1,6 +1,8 @@
 const Logger = require("../loaders/logger");
 const config = require("../config");
 const { encrypt, decrypt, base64enc, base64dec } = require('../utils/crypto.util');
+const repo = require("../api/routes/repo");
+const sequelize = require('../db');
 
 const dbRows = {
     org_id: config.dbTables.organization.org_id,
@@ -10,7 +12,9 @@ const dbRows = {
     gh_id: config.dbTables.organization.gh_id,
     avatar_url: config.dbTables.organization.avatar_url,
     num_repos: config.dbTables.organization.num_repos,
-    num_deps: config.dbTables.organization.num_deps
+    num_deps: config.dbTables.organization.num_deps,
+
+    repo_org_id: config.dbTables.repository.org_id
 }
 
 module.exports = class OrgService {
@@ -96,11 +100,7 @@ module.exports = class OrgService {
                     repoName: repo.name,
                     authToken: params.authToken
                 });
-                
-                // this will not work bc we don't await the scan.
-                // maybe add fails to db when they happen instead?
-                // we could await each repo but that'd make times go up a lot
-                // append files that failed to scan to failures
+
                 if (Object.entries(failedFiles).length > 0){
                     failures.push({
                         repo: repo.name,
@@ -126,13 +126,15 @@ module.exports = class OrgService {
             console.log(fail);
             console.log(JSON.stringify(fail));  ///////////////////////
         }
+
+
+
         Logger.info(`Org: ${params.orgName} scanned successfully`);
         return {orgName: params.orgName, failures: failures};
     }
 
     // userID
     async list(params) {
-        console.log(process.env.DB_ADDRESS)
         const orgs = await this.models.Organization.findAll({
             where: {
                 [dbRows.user_id]: params.userID
@@ -284,6 +286,54 @@ module.exports = class OrgService {
 
         } catch (error) {
             Logger.error('OrgService.getRepoList() failed:', error);
+            throw error;
+        }
+    }
+
+    // count number of repos and update numRepos
+    // orgID
+    async countRepos(params) {
+        Logger.debug(`Counting Repos for Org ${params.orgID}`)
+        try {
+            let realNumRepos = await this.models.Repository.count({
+                where: {
+                    [dbRows.repo_org_id]:  params.orgID
+                }
+            });
+
+            await this.models.Organization.update({[dbRows.num_repos]: realNumRepos}, {
+                where: {
+                    [dbRows.org_id]: params.orgID
+                }
+            });
+
+            return realNumRepos;
+        } catch (error) {
+            Logger.error("OrgService.countRepos() failed", error);
+            throw error;
+        }
+    }
+
+    // should find a better way to do this without having to import sequelize.
+    // WARNING: this puts a param in the raw SQL. Make sure this is never user input
+    // orgID
+    async countDeps(params) {
+        Logger.debug(`Counting Deps for Org ${params.orgID}`)
+        try {
+            const SQL = `SELECT * FROM dependency WHERE depfile_id IN (SELECT depfile_id FROM dependency_file WHERE repo_id IN (SELECT repo_id FROM repository WHERE org_id=${params.orgID}));`
+            const [results, metadata] = await sequelize.query(SQL);
+
+            const numDeps = results.length
+
+            await this.models.Organization.update({[dbRows.num_deps]: numDeps}, {
+                where: {
+                    [dbRows.org_id]: params.orgID
+                }
+            });
+
+            return numDeps;
+        } catch (error) {
+            Logger.error("OrgService.countDeps() failed", error);
             throw error;
         }
     }

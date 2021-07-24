@@ -140,9 +140,20 @@ module.exports = (app) => {
                     repoList: repos
                 });
 
+                // update repo and dep count
+                const numRepos = await orgService.countRepos({
+                    orgID: org[config.dbTables.organization.org_id]
+                });
+
+                const numDeps = await orgService.countDeps({
+                    orgID: org[config.dbTables.organization.org_id]
+                });
+
                 return res.status(200).json({
                     name: scan.orgName,
-                    failures: scan.failures
+                    failures: scan.failures,
+                    numRepos: numRepos,
+                    numDeps: numDeps
                 });
 
             } catch (error) {

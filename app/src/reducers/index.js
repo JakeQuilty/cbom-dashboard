@@ -3,7 +3,8 @@ import {
     UPDATE_NUM_REPOS,
     UPDATE_NUM_DEPS,
     UPDATE_REPOS,
-    SIDEBARE_TOGGLE
+    SIDEBARE_TOGGLE,
+    IS_SCANNING_TOGGLE
 } from "../constants/action-types"
 
 const initialState = {
@@ -13,6 +14,7 @@ const initialState = {
         numRepos: 154,
         numDeps: 81354,
         avatar: 'https://avatars.githubusercontent.com/u/6953970?s=200&v=4',
+        isScanning: false,
         repos: [
             {
                 id: 1,
@@ -30,6 +32,7 @@ const initialState = {
         numRepos: 93,
         numDeps: 21354,
         avatar: 'https://avatars.githubusercontent.com/u/702459?s=200&v=4',
+        isScanning: false,
         repos: [
             {
                 id: 1,
@@ -47,6 +50,7 @@ const initialState = {
         numRepos: 89,
         numDeps: 3541,
         avatar: 'https://avatars.githubusercontent.com/u/342708?s=200&v=4',
+        isScanning: false,
         repos: [
             {
                 id: 1,
@@ -60,11 +64,11 @@ const initialState = {
       numRepos: '-',
       numDeps: '-',
       avatar: 'https://avatars.githubusercontent.com/u/4099049?s=200&v=4',
+      isScanning: false,
       repos: []
   }],
   sidebarShow: 'responsive'
 }
-
 function rootReducer(state = initialState, action) {
     switch (action.type) {
         case ADD_ORG:
@@ -83,26 +87,47 @@ function rootReducer(state = initialState, action) {
             }
         
         case UPDATE_REPOS:
-            let update = state.orgList
-            for (const org of update) {
+            let updateRepos = state.orgList
+            for (const org of updateRepos) {
                 if (org.id === action.payload.id) {
                     org.repos = action.payload.repos
                 }
             }
-            console.log(update)
             return {
                 ...state,
-                orgList: update
+                orgList: updateRepos
             }
 
         case UPDATE_NUM_REPOS:
-            break
+            let updateNumRepos = state.orgList
+            for (const org of updateNumRepos) {
+                if (org.id === action.payload.id) {
+                    org.numRepos = action.payload.numRepos
+                }
+            }
+            return {
+                ...state,
+                orgList: updateNumRepos
+            }
 
         case SIDEBARE_TOGGLE:
             return {
                 ...state,
                 sidebarShow: action.payload
             }
+
+        case IS_SCANNING_TOGGLE:
+            let updateIsScanning = state.orgList
+            for (const org of updateIsScanning) {
+                if (org.id === action.payload.id) {
+                    org.isScanning = action.payload.isScanning
+                }
+            }
+            return {
+                ...state,
+                orgList: updateIsScanning
+            }
+
 
         default:
             return state

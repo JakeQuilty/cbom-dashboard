@@ -1,19 +1,13 @@
-import React, { useState } from 'react'
-import { connect, useDispatch } from 'react-redux'
-import RepoList from './RepoList'
+import { connect, useDispatch, useSelector } from 'react-redux'
+import RepoDepTabs from './RepoDepTabs'
+import ScanningPlaceholder from './ScanningPlaceholder'
 import { apiScanOrg } from '../api/org'
+import { isScanningToggle } from '../actions'
 import {
     CCol,
     CRow,
     CContainer,
-    CTabs,
-    CNav,
-    CNavItem,
-    CTabContent,
-    CTabPane,
-    CNavLink,
     CButton,
-    CSpinner,
     CAlert
 } from '@coreui/react'
 
@@ -26,15 +20,19 @@ const findOrg = (matchID, orgs) => {
 }
 
 const Organization = ({match, orgs}) => {
-    const [isScanning, setIsScanning] = useState(false)
     const org = findOrg(match.params.id, orgs)
 
+    // if org === undefined, kick back to orgs list to avoid errors??
+
+    const dispatch = useDispatch()
+    const isScanning = useSelector(state => org.isScanning)
+
     const scanOrg = async (org) => {
-        setIsScanning(true)
+        dispatch(isScanningToggle({id: org.id, isScanning: true}))
         await apiScanOrg({
             name: org.name
         })
-        setIsScanning(false)
+        dispatch(isScanningToggle({id: org.id, isScanning: false}))
     }
 
     return (
@@ -51,34 +49,13 @@ const Organization = ({match, orgs}) => {
                     <h1>{org.name}</h1>
                 </CCol>
                 <CCol width="2" xs="2" sm="2" md="2" lg="2">
-                    {isScanning ? <CSpinner color="info" size="lg"/> : <CButton color= "info" size="lg" className="h3" onClick={()=> scanOrg(org)}>Scan</CButton>}
+                    {!isScanning && <CButton color= "info" size="lg" className="h3" onClick={()=> scanOrg(org)}>Scan</CButton>}
                 </CCol>
             </CRow>
             <CRow alignHorizontal="center">{isScanning && <CAlert color="info" closeButton>Scanning {org.name}! This might take a bit...</CAlert>}</CRow>
             <CRow alignHorizontal="center">
                 <CCol lg={12} xl={6}>
-                    <CTabs activeTab="repos">
-                        <CNav variant="tabs">
-                            <CNavItem>
-                                <CNavLink data-tab="repos">
-                                    Repos ({org.numRepos})
-                                </CNavLink>
-                            </CNavItem>
-                            <CNavItem>
-                                <CNavLink data-tab="dependencies">
-                                    Dependencies ({org.numDeps})
-                                </CNavLink>
-                            </CNavItem>
-                        </CNav>
-                        <CTabContent>
-                            <CTabPane data-tab="repos">
-                                <RepoList org={org} isScanning={isScanning} perPage={50}/>
-                            </CTabPane>
-                            <CTabPane data-tab="dependencies">
-                                <RepoList org={org} perPage={50}/>
-                            </CTabPane>
-                        </CTabContent>
-                    </CTabs>
+                    {isScanning ? <ScanningPlaceholder /> : <RepoDepTabs org={org} />}
                 </CCol>
             </CRow>
         </CContainer>

@@ -49,7 +49,8 @@ module.exports = {
             repo_id: 'repo_id',
             repo_name: 'repo_name',
             default_branch: 'default_branch',
-            org_id: 'org_id'
+            org_id: 'org_id',
+            num_deps: 'num_deps'
         },
         fileType: {
             name: "file_type",

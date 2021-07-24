@@ -44,6 +44,7 @@ const AddOrg = () => {
                 numRepos: res.data.numRepos,
                 numDeps: res.data.numDeps,
                 avatar: res.data.avatar,
+                isScanning: false,
                 repos: []
             }))
         }

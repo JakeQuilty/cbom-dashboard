@@ -23,17 +23,23 @@ module.exports = (app) => {
             orgID: Joi.number().required()
         }),
     }),
-    async (req, res) =>{
+    async (req, res) => {
         try {
             const repoService = new RepoService(null, models, null, null);
             const repoList = await repoService.list(req.body);
 
             let formattedRepos = []
             for (const repo of repoList) {
+
+                const numDeps = await repoService.countDeps({
+                    repoID: repo[dbRows.repo_id]
+                });
+
                 formattedRepos.push({
                     id: repo[dbRows.repo_id],
                     name:repo[dbRows.repo_name],
-                    defaultBranch: repo[dbRows.default_branch]
+                    defaultBranch: repo[dbRows.default_branch],
+                    numDeps: numDeps
                 })
             }
 
@@ -50,4 +56,14 @@ module.exports = (app) => {
             return res.status(errRes.status).json({error: errRes.error});
         }
     });
+
+    route.post('/list/deps'), celebrate({
+        [Segments.BODY]: Joi.object().keys({
+            userID: Joi.number().required(),
+            orgID: Joi.number().required()
+        }),
+    }),
+    async (req, res) => {
+        
+    }
 }

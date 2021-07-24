@@ -19,6 +19,9 @@ module.exports = (sequelize) => {
             type: DataTypes.STRING(32),
             allowNull: false
         },
+        [config.dbTables.repository.num_deps]: {
+            type: DataTypes.INTEGER,
+        },
         [config.dbTables.repository.org_id]: {
             type: DataTypes.INTEGER,
             references: config.dbTables.organization.name,

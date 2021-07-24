@@ -1,19 +1,15 @@
 # cybersec-bill-of-materials
 
-# Production
+# Setup
 
 Start
-`docker-compose up --build`
-- Need to use `--build` to rebuild app with changes
+`docker-compose up`
 
-Build Frontend
-
-```
-cd app
-npm run build
-```
 
 ## Dev
+
+Need to use `--build` to rebuild app with changes
+`docker-compose up --build`
 
 Run Backend Unit Tests
 `npm test`

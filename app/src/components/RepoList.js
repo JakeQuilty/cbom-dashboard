@@ -2,14 +2,12 @@ import React, { useState, useEffect } from 'react'
 import { useHistory, useLocation } from 'react-router-dom'
 import { connect, useDispatch, useSelector } from 'react-redux'
 import { apiFetchRepos } from '../api/repo'
-import { updateRepos } from '../actions'
+import { updateRepos, updateNumRepos } from '../actions'
 import {
     CCard,
-    CCardHeader,
     CCardBody,
     CDataTable,
     CPagination,
-    CIcon
 } from '@coreui/react'
 
 const RepoList = ({org, perPage}) => {
@@ -32,7 +30,10 @@ const RepoList = ({org, perPage}) => {
             id: org.id,
             repos: res.data.repos
         }))
-        //dispatch() // update numRepos
+        dispatch(updateNumRepos({
+            id: org.id,
+            numRepos: res.data.numRepos
+        }))
     }
     
     useEffect(() => {
@@ -62,10 +63,11 @@ const RepoList = ({org, perPage}) => {
                     ]}
                     hover
                     striped
+                    itemsPerPageSelect={{values: [25,50,100]}}
                     itemsPerPage={perPage}
                     activePage={page}
                     clickableRows
-                    onRowClick={(item) => history.push(`/org/${item.id}`)}
+                    onRowClick={(item) => history.push(`/org/${org.id}/repo/${item.id}`)}
                     sorter
                     tableFilter
                     />

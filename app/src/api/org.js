@@ -32,5 +32,6 @@ export async function apiFetchOrgs() {
 
 export async function apiScanOrg(data) {
     let response = await postReq('/api/org/scan', data);
+    console.log(response)   /////////
     return response
 }
