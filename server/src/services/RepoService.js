@@ -155,24 +155,6 @@ module.exports = class RepoService {
 
     }
 
-    // should find a better way to do this without having to import sequelize.
-    // WARNING: this puts a param in the raw SQL. Make sure this is never user input
-    // repoID
-    async countDeps(params) {
-        const SQL = `SELECT * FROM dependency WHERE depfile_id IN (SELECT depfile_id FROM dependency_file WHERE repo_id=${params.repoID});`
-        const [results, metadata] = await sequelize.query(SQL);
-
-        const numDeps = results.length
-
-        await this.models.Repository.update({[dbRow.num_deps]: numDeps}, {
-            where: {
-                [dbRow.repo_id]: params.repoID
-            }
-        });
-
-        return numDeps;
-    }
-
     /**
      * Retrieves a list of all the files in a repo
      * @param {string} orgName
@@ -218,5 +200,36 @@ module.exports = class RepoService {
             Logger.error(`getFileList() failed to get files - repo:${params.repoName}`);
             throw error;
         }
+    }
+
+    // These functions directly use the sequelize import instead of models
+
+    // should find a better way to do this without having to import sequelize.
+    // WARNING: this puts a param in the raw SQL. Make sure this is never user input
+    // repoID
+    async countDeps(params) {
+        const SQL = `SELECT * FROM dependency WHERE depfile_id IN (SELECT depfile_id FROM dependency_file WHERE repo_id=${params.repoID});`
+        const [results, metadata] = await sequelize.query(SQL);
+
+        const numDeps = results.length
+
+        await this.models.Repository.update({[dbRow.num_deps]: numDeps}, {
+            where: {
+                [dbRow.repo_id]: params.repoID
+            }
+        });
+
+        return numDeps;
+    }
+
+    // WARNING: this puts a param in the raw SQL. Make sure this is never user input
+    // repoID
+    async listDeps(params) {
+        const SQL = `SELECT * FROM dependency WHERE depfile_id IN (SELECT depfile_id FROM dependency_file WHERE repo_id=${params.repoID});`
+        const [results, metadata] = await sequelize.query(SQL);
+
+        console.log(results);
+
+        return results;
     }
 }

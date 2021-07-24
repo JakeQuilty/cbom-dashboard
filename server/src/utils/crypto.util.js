@@ -21,7 +21,7 @@ const decrypt = (hash) => {
     return decrpyted.toString();
 };
 
-const base64enc = (plain) => {
+const base64enc = async (plain) => {
     const buff = Buffer.from(plain, 'utf-8');
     const base64 = buff.toString('base64');
     return base64;

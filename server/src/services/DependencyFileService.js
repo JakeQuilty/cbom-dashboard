@@ -156,4 +156,15 @@ module.exports = class DependencyFileService {
             //     return {language: 'python', parser: 'NEED TO MAKE'};
         }
     }
+
+    async retrieve(depfileID) {
+        try {
+            const depfile = await this.models.DependencyFile.findByPk(depfileID);
+
+            return depfile;
+        } catch (error) {
+            Logger.error("DependencyFileService.retrieve() failed", error);
+            throw error;
+        }
+    }
 }
