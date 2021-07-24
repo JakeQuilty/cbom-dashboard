@@ -20,7 +20,7 @@ const findOrg = (matchID, orgs) => {
 }
 
 const Organization = ({match, orgs}) => {
-    const org = findOrg(match.params.id, orgs)
+    const org = findOrg(match.params.id, orgs) || {}
 
     // if org === undefined, kick back to orgs list to avoid errors??
 
@@ -39,11 +39,9 @@ const Organization = ({match, orgs}) => {
         <CContainer>
             <CRow alignHorizontal="left">
                 <CCol xs="1" sm="1" md="1" lg="1">
-                    <td className="text-center">
-                        <div className="c-avatar">
-                            <img src={org.avatar} className="c-avatar-img" alt="Unavailable" />
-                        </div>
-                    </td>
+                    <div className="c-avatar-lg">
+                        <img src={org.avatar} className="c-avatar-img" alt="Unavailable" />
+                    </div>
                 </CCol>
                 <CCol width="12" xs="2" sm="4" md="8" lg="8">
                     <h1>{org.name}</h1>
@@ -54,7 +52,7 @@ const Organization = ({match, orgs}) => {
             </CRow>
             <CRow alignHorizontal="center">{isScanning && <CAlert color="info" closeButton>Scanning {org.name}! This might take a bit...</CAlert>}</CRow>
             <CRow alignHorizontal="center">
-                <CCol lg={12} xl={6}>
+                <CCol lg='12'>
                     {isScanning ? <ScanningPlaceholder /> : <RepoDepTabs org={org} />}
                 </CCol>
             </CRow>

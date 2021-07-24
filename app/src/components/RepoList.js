@@ -11,7 +11,7 @@ import {
 } from '@coreui/react'
 
 const RepoList = ({org, perPage}) => {
-    const repos = useSelector(state => org.repos)
+    const repos = useSelector(state => org.repos) || []
     const history = useHistory()
     const queryPage = useLocation().search.match(/page=([0-9]+)/, '')
     const currentPage = Number(queryPage && queryPage[1] ? queryPage[1] : 1)

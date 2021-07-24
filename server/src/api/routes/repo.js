@@ -18,6 +18,7 @@ const dbRows = {
     dep_id: [config.dbTables.dependency.dep_id],
     dep_name: [config.dbTables.dependency.dep_name],
     dep_version: [config.dbTables.dependency.dep_version],
+    depfile_id: [config.dbTables.dependency.depfile_id],
 
     depfile_path: [config.dbTables.dependencyFile.file_path]
 }
@@ -85,10 +86,10 @@ module.exports = (app) => {
                 repoID: req.body.repoID
             });
 
-            let formattedDepList = []
+            let formattedDepList = [];
             for (const dep of depList) {
                 // get path
-                const depfilePath = await depfileService.retrieve(req.body.repoID);
+                const depfilePath = await depfileService.retrieve(dep[dbRows.depfile_id]);
 
                 // base64 encode path
                 const encodedDepfilePath = await base64enc(depfilePath[dbRows.depfile_path]);

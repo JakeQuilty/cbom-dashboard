@@ -3,7 +3,8 @@ import {
     UPDATE_REPOS,
     SIDEBARE_TOGGLE,
     IS_SCANNING_TOGGLE,
-    UPDATE_NUM_REPOS
+    UPDATE_NUM_REPOS,
+    UPDATE_REPO_DEPS
 } from "../constants/action-types"
 
 export function addOrgToList(payload) {
@@ -24,4 +25,8 @@ export function isScanningToggle(payload) {
 
 export function updateNumRepos(payload) {
     return { type: UPDATE_NUM_REPOS, payload}
+}
+
+export function updateRepoDeps(payload) {
+    return { type: UPDATE_REPO_DEPS, payload}
 }

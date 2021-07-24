@@ -4,69 +4,12 @@ import {
     UPDATE_NUM_DEPS,
     UPDATE_REPOS,
     SIDEBARE_TOGGLE,
-    IS_SCANNING_TOGGLE
+    IS_SCANNING_TOGGLE,
+    UPDATE_REPO_DEPS
 } from "../constants/action-types"
 
 const initialState = {
-    orgList: [{
-        id: 351234,
-        name: 'Protonmail',
-        numRepos: 154,
-        numDeps: 81354,
-        avatar: 'https://avatars.githubusercontent.com/u/6953970?s=200&v=4',
-        isScanning: false,
-        repos: [
-            {
-                id: 1,
-                name: 'protonmail'
-            },
-            {
-                id: 2,
-                name: 'protonvpn'
-            }
-        ]
-    },
-    {
-        id: 12353,
-        name: 'SignalApp',
-        numRepos: 93,
-        numDeps: 21354,
-        avatar: 'https://avatars.githubusercontent.com/u/702459?s=200&v=4',
-        isScanning: false,
-        repos: [
-            {
-                id: 1,
-                name: 'signal-ios'
-            },
-            {
-                id: 2,
-                name: 'signal-android'
-            }
-        ]
-    },
-    {
-        id: 312523,
-        name: 'DuckDuckGo',
-        numRepos: 89,
-        numDeps: 3541,
-        avatar: 'https://avatars.githubusercontent.com/u/342708?s=200&v=4',
-        isScanning: false,
-        repos: [
-            {
-                id: 1,
-                name: 'duckduckgo'
-            }
-        ]
-    },
-    {
-      id: 4654643,
-      name: 'TorProject',
-      numRepos: '-',
-      numDeps: '-',
-      avatar: 'https://avatars.githubusercontent.com/u/4099049?s=200&v=4',
-      isScanning: false,
-      repos: []
-  }],
+    orgList: [],
   sidebarShow: 'responsive'
 }
 function rootReducer(state = initialState, action) {
@@ -126,6 +69,23 @@ function rootReducer(state = initialState, action) {
             return {
                 ...state,
                 orgList: updateIsScanning
+            }
+        
+        case UPDATE_REPO_DEPS:
+            let updateRepoDeps = state.orgList
+            // gross
+            for (const org of updateRepoDeps) {
+                if (org.id === action.payload.orgID) {
+                    for (const repo of org.repos) {
+                        if (repo.id === action.payload.repoID) {
+                            repo.deps = action.payload.deps
+                        }
+                    }
+                }
+            }
+            return {
+                ...state,
+                orgList: updateRepoDeps
             }
 
 

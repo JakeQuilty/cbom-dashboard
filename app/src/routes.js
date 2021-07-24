@@ -39,7 +39,8 @@ const User = React.lazy(() => import('./views/users/User'));
 
 const Home = React.lazy(() => import('./components/home/Home'));
 const Organizations = React.lazy(() => import('./components/Organizations'));
-const Organization = React.lazy(() => import('./components/Organization'))
+const Organization = React.lazy(() => import('./components/Organization'));
+const Repository = React.lazy(() => import('./components/Repository'));
 
 const routes = [
   //{ path: '/', exact: true, name: 'Home' },
@@ -85,7 +86,7 @@ const routes = [
   { path: '/home', name: 'Home', component: Home },
   { path: '/org', exact: true, name: 'Organizations', component: Organizations},
   { path: '/org/:id', exact: true, name: 'Org Details', component: Organization},
-  // org/:id/repo/:id
+  { path: '/org/:orgid/repo/:repoid', exact: true, name: 'Repository', component: Repository}
   // org/:id/dep/:id
 
 ];

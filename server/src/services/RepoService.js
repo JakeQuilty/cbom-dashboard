@@ -228,7 +228,7 @@ module.exports = class RepoService {
         const SQL = `SELECT * FROM dependency WHERE depfile_id IN (SELECT depfile_id FROM dependency_file WHERE repo_id=${params.repoID});`
         const [results, metadata] = await sequelize.query(SQL);
 
-        console.log(results);
+        console.log(results);   ////////////
 
         return results;
     }

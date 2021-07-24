@@ -26,7 +26,7 @@ return (
           {showAdd && <AddOrg />}
       </CRow>
       <CRow>
-        <CCol xl={6}>
+        <CCol lg="12">
           <OrgList perPage={20} />
         </CCol>
       </CRow>
