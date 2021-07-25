@@ -320,7 +320,7 @@ module.exports = class OrgService {
     async countDeps(params) {
         Logger.debug(`Counting Deps for Org ${params.orgID}`)
         try {
-            const SQL = `SELECT * FROM dependency WHERE depfile_id IN (SELECT depfile_id FROM dependency_file WHERE repo_id IN (SELECT repo_id FROM repository WHERE org_id=${params.orgID}));`
+            const SQL = `SELECT DISTINCT dep_name FROM dependency WHERE depfile_id IN (SELECT depfile_id FROM dependency_file WHERE repo_id IN (SELECT repo_id FROM repository WHERE org_id=${params.orgID}));`
             const [results, metadata] = await sequelize.query(SQL);
 
             const numDeps = results.length
@@ -336,6 +336,13 @@ module.exports = class OrgService {
             Logger.error("OrgService.countDeps() failed", error);
             throw error;
         }
+    }
+
+    async listDeps(params) {
+        const SQL = `SELECT DISTINCT dep_name FROM dependency WHERE depfile_id IN (SELECT depfile_id FROM dependency_file WHERE repo_id IN (SELECT repo_id FROM repository WHERE org_id=${params.orgID}));`
+        const [results, metadata] = await sequelize.query(SQL);
+
+        return results;
     }
 }
 
