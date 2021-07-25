@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react'
 import { useHistory, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { apiFetchRepos } from '../api/repo'
-import { updateRepos, updateNumRepos } from '../actions'
+import { apiFetchDeps } from '../api/dep'
+import { updateDeps, updateNumDeps } from '../actions'
 import {
     CCard,
     CCardBody,
@@ -10,8 +10,8 @@ import {
     CPagination,
 } from '@coreui/react'
 
-const RepoList = ({org, perPage}) => {
-    const repos = useSelector(state => org.repos) || []
+const DepList = ({org, perPage}) => {
+    const deps = useSelector(state => org.deps) || []
     const history = useHistory()
     const queryPage = useLocation().search.match(/page=([0-9]+)/, '')
     const currentPage = Number(queryPage && queryPage[1] ? queryPage[1] : 1)
@@ -22,17 +22,17 @@ const RepoList = ({org, perPage}) => {
     }
     const dispatch = useDispatch()
 
-    const updateRepoList = async (res) => {
+    const updateDepList = async (res) => {
         if (res.status !== 200) {
             return
         }
-        dispatch(updateRepos({
+        dispatch(updateDeps({
             id: org.id,
-            repos: res.data.repos
+            deps: res.data.deps
         }))
-        dispatch(updateNumRepos({
+        dispatch(updateNumDeps({
             id: org.id,
-            numRepos: res.data.numRepos
+            numDeps: res.data.numDeps
         }))
     }
     
@@ -43,10 +43,10 @@ const RepoList = ({org, perPage}) => {
     useEffect(() => {
         async function fetchRepos() {
             setIsFetching(true)
-            let res = await apiFetchRepos({orgID: org.id})
+            let res = await apiFetchDeps({orgID: org.id})
             setIsFetching(false)
 
-            updateRepoList(res)
+            updateDepList(res)
         }
         fetchRepos()
     }, [])
@@ -56,10 +56,10 @@ const RepoList = ({org, perPage}) => {
             {isFetching ? <CCardBody><h1>Loading...</h1></CCardBody> : 
             <CCardBody>
                 <CDataTable
-                    items={repos}
+                    items={deps}
                     fields={[
                         { key: 'name', _style: { width: '40%' }, _classes: 'text-left'},
-                        { key: 'numDeps', label: 'Dependencies', _style: { width: '25%' }}
+                        { key: 'numRepos', label: 'Repositories', _style: { width: '25%' }}
                     ]}
                     hover
                     striped
@@ -74,7 +74,7 @@ const RepoList = ({org, perPage}) => {
                     <CPagination
                     activePage={page}
                     onActivePageChange={pageChange}
-                    pages={Math.floor(repos.length/perPage)+1}
+                    pages={Math.floor(deps.length/perPage)+1}
                     doubleArrows={false} 
                     align="center"
                     />
@@ -84,4 +84,4 @@ const RepoList = ({org, perPage}) => {
     )
 }
 
-export default RepoList
+export default DepList

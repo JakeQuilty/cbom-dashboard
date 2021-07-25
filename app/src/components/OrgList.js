@@ -41,7 +41,8 @@ const OrgList = ({list, perPage}) => {
                 numRepos: org.numRepos,
                 numDeps: org.numDeps,
                 avatar: org.avatar,
-                repos: []
+                repos: [],
+                deps: []
             }))
         }
     }

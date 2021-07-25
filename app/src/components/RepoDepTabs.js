@@ -1,5 +1,6 @@
 import React from 'react'
 import RepoList from './RepoList'
+import DepList from './DepList'
 import { useSelector } from 'react-redux'
 import {
     CTabs,
@@ -33,7 +34,7 @@ const RepoDepTabs = ({ org }) => {
                     <RepoList org={org} perPage={50}/>
                 </CTabPane>
                 <CTabPane data-tab="dependencies">
-                    <RepoList org={org} perPage={50}/>
+                    <DepList org={org} perPage={50}/>
                 </CTabPane>
             </CTabContent>
         </CTabs>

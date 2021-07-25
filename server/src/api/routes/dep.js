@@ -9,6 +9,7 @@ const RepoService = require("../../services/RepoService");
 const DependencyFileService = require("../../services/DependencyFileService");
 const DependencyService = require("../../services/DependencyService");
 const OrgService = require("../../services/OrgService");
+const { format } = require("../../loaders/logger");
 
 const route = express.Router();
 
@@ -52,8 +53,9 @@ module.exports = (app) => {
                 formattedDepList.push({id: index, name: dep[dbRows.dep_name], numRepos: repos.length});
             }
 
+            let numDeps = formattedDepList.length
 
-            return res.status(200).json(formattedDepList);
+            return res.status(200).json({deps: formattedDepList, numDeps: numDeps});
         } catch (error) {
             Logger.error(error);
             const errRes = await errorHandler(error);
