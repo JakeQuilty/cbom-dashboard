@@ -83,6 +83,7 @@ module.exports = {
         internal: "Internal Server Error",
         invalid_token: "Invalid GitHub OAuth Token",
         invalid_org: "Invalid GitHub Organization",
-        org_does_not_exist: "Organization not in database"
+        org_does_not_exist: "Organization not in database",
+        invalid_dep_name: "Invalid dependency name"
     }
 }

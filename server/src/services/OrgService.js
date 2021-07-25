@@ -14,7 +14,9 @@ const dbRows = {
     num_repos: config.dbTables.organization.num_repos,
     num_deps: config.dbTables.organization.num_deps,
 
-    repo_org_id: config.dbTables.repository.org_id
+    repo_org_id: config.dbTables.repository.org_id,
+
+    dep_name: config.dbTables.dependency.dep_name
 }
 
 module.exports = class OrgService {
@@ -343,6 +345,16 @@ module.exports = class OrgService {
         const [results, metadata] = await sequelize.query(SQL);
 
         return results;
+    }
+
+    // depList, depName
+    async depExists(params) {
+        for (const dep of params.depList) {
+            if (dep[dbRows.dep_name] === params.depName) {
+                return {exists: true, name: dep[dbRows.dep_name]};
+            }
+        }
+        return {exists: false, name: undefined};
     }
 }
 

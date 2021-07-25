@@ -1,9 +1,9 @@
 const config = require('../config');
-const { error } = require('../loaders/logger');
 
 const ERROR_STATUS = {
     [config.ERROR_MESSAGES.invalid_token]: 401,
     [config.ERROR_MESSAGES.invalid_org]: 404,
+    [config.ERROR_MESSAGES.invalid_dep_name]: 404,
     [config.ERROR_MESSAGES.internal]: 500
 }
 
