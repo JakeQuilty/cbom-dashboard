@@ -1,5 +1,6 @@
 const Logger = require('../loaders/logger');
 const config = require('../config');
+const sequelize = require('../db')
 
 const dbRow = {
     dep_id: config.dbTables.dependency.dep_id,
@@ -70,5 +71,25 @@ module.exports = class DependencyService {
             Logger.error("DependencyService.create() failed");
             throw error;
         }
+    }
+
+    // WARNING: this puts a param in the raw SQL. Make sure this is never user input
+    // lists all repos using a dep
+    // depName, orgID
+    async listRepos(params) {
+        const SQL = `SELECT * FROM repository WHERE repo_id IN (SELECT repo_id FROM dependency_file WHERE depfile_id IN (SELECT depfile_id FROM dependency WHERE dep_name = "${params.depName}")) AND repo_id IN (SELECT repo_id FROM repository WHERE org_id=${params.orgID});`
+        const [results, metadata] = await sequelize.query(SQL);
+
+        return results;
+    }
+
+    // repoID, depName
+    async getDepVersion(params) {
+        const SQL = `SELECT * FROM dependency WHERE depfile_id IN (SELECT depfile_id FROM dependency_file WHERE repo_id = "${params.repoID}" AND dep_name = "${params.depName}");`
+        const [results, metadata] = await sequelize.query(SQL);
+        // unless there's an issue in the db, this should only ever return one result
+        const version = results[0][dbRow.dep_version];
+
+        return version;
     }
 }

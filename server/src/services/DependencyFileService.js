@@ -2,6 +2,7 @@ const Logger = require('../loaders/logger');
 const path = require('path');
 const config = require('../config');
 const { getDate } = require('../utils/db.util');
+const { base64dec } = require('../utils/crypto.util');
 
 const dbRow = {
     depfile_id: config.dbTables.dependencyFile.depfile_id,
@@ -104,8 +105,7 @@ module.exports = class DependencyFileService {
                 repo: params.repoName,
                 file_sha: params.sha
             });
-            let buff = Buffer.from(encodedBlob.data.content, 'base64');
-            return buff.toString();
+            return base64dec(encodedBlob.data.content);
         } catch (error) {
             Logger.error("DependencyFileService.getBlob failed", error);
             throw error;
@@ -125,7 +125,7 @@ module.exports = class DependencyFileService {
 
         for (const dep of dependencies) {
             try {
-                this.dpService.create({
+                await this.dpService.create({
                     depName: dep.name,
                     version: dep.version,
                     scanDate: date,
@@ -154,6 +154,17 @@ module.exports = class DependencyFileService {
                 return {language: 'javascript', parser: parse};
             // case 'requirements.txt':
             //     return {language: 'python', parser: 'NEED TO MAKE'};
+        }
+    }
+
+    async retrieve(depfileID) {
+        try {
+            const depfile = await this.models.DependencyFile.findByPk(depfileID);
+
+            return depfile;
+        } catch (error) {
+            Logger.error("DependencyFileService.retrieve() failed", error);
+            throw error;
         }
     }
 }

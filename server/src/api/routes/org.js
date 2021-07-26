@@ -18,15 +18,27 @@ const route = express.Router();
 module.exports = (app) => {
     app.use('/org', route);
 
-    route.get('/list', (req, res) =>{
-        Logger.info("test");
-        return res.status(200).json({message: "hi"});
+    route.post('/list',celebrate({
+        [Segments.BODY]: Joi.object().keys({
+            userID: Joi.number().required()
+        }),
+    }),
+    async (req, res) =>{
+        try {
+            const orgService = new OrgService(null, models, null);
+            const orgList = await orgService.list(req.body);
+            return res.status(200).json(orgList);
+        } catch (error) {
+            Logger.error(error);
+            const errRes = await errorHandler(error);
+            return res.status(errRes.status).json({error: errRes.error});
+        }
     });
 
     route.post('/new',
         celebrate({
             [Segments.BODY]: Joi.object().keys({
-                userID: Joi.string().required(),
+                userID: Joi.number().required(),
                 name: Joi.string().required(),
                 authToken: Joi.string().required()
             }),
@@ -55,31 +67,36 @@ module.exports = (app) => {
                     throw new Error(config.ERROR_MESSAGES.invalid_org);
                 }
 
-                const ghID = await orgService.getGithubID(req.body.name, req.body.authToken);
+                const ghData = await orgService.getGithubData(req.body.name, req.body.authToken);
+                console.log(ghData.avatarUrl)
 
                 const org = await orgService.create({
                     orgName: req.body.name,
                     authToken: req.body.authToken,
                     userID: req.body.userID,
-                    ghID: ghID
+                    ghID: ghData.id,
+                    avatar: ghData.avatarUrl
                 });
 
                 return res.status(200).json({
                     name: org[config.dbTables.organization.org_name],
-                    id: org[config.dbTables.organization.org_id]
+                    id: org[config.dbTables.organization.org_id],
+                    avatar: org[config.dbTables.organization.avatar_url],
+                    numRepos: null,
+                    numDeps: null,
                 });
 
-            } catch(error) {
+            } catch (error) {
                 Logger.error(error);
-                const {status, data} = errorHandler(error);
-                return res.status(status).json({data});
+                const errRes = await errorHandler(error);
+                return res.status(errRes.status).json({error: errRes.error});
             }
         });
 
     route.post('/scan',
         celebrate({
             [Segments.BODY]: Joi.object().keys({
-                userID: Joi.string().required(),
+                userID: Joi.number().required(),
                 name: Joi.string().required()
             }),
         }),
@@ -124,25 +141,25 @@ module.exports = (app) => {
                     repoList: repos
                 });
 
-                return res.status(200).json({
-                    name: scan.orgName,
-                    failures: scan.failures
+                // update repo and dep count
+                const numRepos = await orgService.countRepos({
+                    orgID: org[config.dbTables.organization.org_id]
                 });
 
-            } catch(error) {
-                Logger.error("/api/org/scan failed: ", error);
-                const {status, data} = errorHandler(error);
-                return res.status(status).json(data);
+                const numDeps = await orgService.countDeps({
+                    orgID: org[config.dbTables.organization.org_id]
+                });
+
+                return res.status(200).json({
+                    name: scan.orgName,
+                    failures: scan.failures,
+                    numRepos: numRepos,
+                    numDeps: numDeps
+                });
+
+            } catch (error) {
+                const errRes = await errorHandler(error);
+                return res.status(errRes.status).json({error: errRes.error});
             }
         });
-    
-    route.post('/update/ghtoken', 
-        //celebrate
-        ),
-        async (req, res) => {
-            Logger.info(`::::: Updating OAuth Token Org: ${req.body.name} :::::`);
-            Logger.debug('body: %o', req.body);
-
-            return res.status(200);
-        }
 }

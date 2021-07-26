@@ -11,7 +11,10 @@ const schema = Joi.object({
         .required(),
 
     ghID: Joi.number()
-        .required()
+        .required(),
+    
+    avatar: Joi.string()
+        .required(),
 });
 
 module.exports = schema;

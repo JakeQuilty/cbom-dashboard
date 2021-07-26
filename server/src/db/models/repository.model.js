@@ -1,5 +1,5 @@
 const { Sequelize, DataTypes, Model } = require('sequelize');
-const config = require('../../../config');
+const config = require('../../config');
 
 module.exports = (sequelize) => {
 
@@ -18,6 +18,9 @@ module.exports = (sequelize) => {
         [config.dbTables.repository.default_branch]: {
             type: DataTypes.STRING(32),
             allowNull: false
+        },
+        [config.dbTables.repository.num_deps]: {
+            type: DataTypes.INTEGER,
         },
         [config.dbTables.repository.org_id]: {
             type: DataTypes.INTEGER,

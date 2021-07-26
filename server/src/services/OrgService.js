@@ -1,12 +1,22 @@
 const Logger = require("../loaders/logger");
 const config = require("../config");
-const { encrypt, decrypt } = require('../utils/crypto.util');
+const { encrypt, decrypt, base64enc, base64dec } = require('../utils/crypto.util');
+const repo = require("../api/routes/repo");
+const sequelize = require('../db');
 
 const dbRows = {
+    org_id: config.dbTables.organization.org_id,
     user_id: config.dbTables.organization.user_id,
     org_name: config.dbTables.organization.org_name,
     auth_token: config.dbTables.organization.auth_token,
-    gh_id: config.dbTables.organization.gh_id
+    gh_id: config.dbTables.organization.gh_id,
+    avatar_url: config.dbTables.organization.avatar_url,
+    num_repos: config.dbTables.organization.num_repos,
+    num_deps: config.dbTables.organization.num_deps,
+
+    repo_org_id: config.dbTables.repository.org_id,
+
+    dep_name: config.dbTables.dependency.dep_name
 }
 
 module.exports = class OrgService {
@@ -19,10 +29,10 @@ module.exports = class OrgService {
     
     /**
      * Creates an organization in the database
-     * @param {Object} params orgName, authToken, userID, ghID
+     * @param {Object} params orgName, authToken, userID, ghID, avatar
      * @returns Org data
      */
-    async create(params){
+    async create(params) {
         try {
             //check params
             const schema = require('../utils/schema/schema.OrgService.create');
@@ -37,6 +47,8 @@ module.exports = class OrgService {
         Logger.debug(`Creating Org: ${params.orgName}`);
 
         const encryptedToken = encrypt(params.authToken);
+        const base64AvatarURL = await base64enc(params.avatar);
+        console.log(base64AvatarURL)
 
         let org = await this.models.Organization.findOrCreate({
             where: {
@@ -46,6 +58,7 @@ module.exports = class OrgService {
             defaults: {
                 [dbRows.gh_id]: params.ghID,
                 [dbRows.auth_token]: encryptedToken,
+                [dbRows.avatar_url]: base64AvatarURL
             }
         });
 
@@ -62,7 +75,7 @@ module.exports = class OrgService {
      * @param {Object} params orgName, userID, authToken, repoList, orgID
      * @returns An Object with orgName, and an array of failures
      */
-    async scan(params){
+    async scan(params) {
 
         let failures = [];
 
@@ -83,15 +96,14 @@ module.exports = class OrgService {
                     authToken: params.authToken
                 });
 
-                let failedFiles = this.repoService.scan({
+                let failedFiles = await this.repoService.scan({
                     repoID: repoData[config.dbTables.repository.repo_id],
                     fileTree: fileTree,
                     orgName: params.orgName,
                     repoName: repo.name,
                     authToken: params.authToken
                 });
-                
-                // append files that failed to scan to failures
+
                 if (Object.entries(failedFiles).length > 0){
                     failures.push({
                         repo: repo.name,
@@ -117,8 +129,33 @@ module.exports = class OrgService {
             console.log(fail);
             console.log(JSON.stringify(fail));  ///////////////////////
         }
+
+
+
         Logger.info(`Org: ${params.orgName} scanned successfully`);
         return {orgName: params.orgName, failures: failures};
+    }
+
+    // userID
+    async list(params) {
+        const orgs = await this.models.Organization.findAll({
+            where: {
+                [dbRows.user_id]: params.userID
+            }
+        });
+
+        let orgList = []
+        for (const org of orgs) {
+            orgList.push({
+                id: org.dataValues[dbRows.org_id],
+                name: org.dataValues[dbRows.org_name],
+                avatar: org.dataValues[dbRows.avatar_url],
+                numRepos: org.dataValues[dbRows.num_repos],
+                numDeps: org.dataValues[dbRows.num_deps]
+            });
+        }
+
+        return orgList
     }
 
     /**
@@ -154,20 +191,20 @@ module.exports = class OrgService {
     }
 
     /**
-     * Gets the GitHub ID for the Org
+     * Gets the GitHub data for the Org
      * @param {string} orgName 
      * @param {string} authToken 
-     * @returns github id
+     * @returns github id and avatar_url
      */
-    async getGithubID(orgName, authToken) {
+    async getGithubData(orgName, authToken) {
         try {
             const octokit = await this.ghService.getOctokit(authToken);
             let result = await octokit.rest.orgs.get({
                 org: orgName
             });
             if (result.status == 200){
-                Logger.debug(`org:${orgName} GitHub ID retrieval: success`);
-                return result.data.id;
+                Logger.debug(`org:${orgName} GitHub Data: success`);
+                return {id: result.data.id, avatarUrl: result.data.avatar_url};
             }
             else{
                 Logger.error("Unknown result on GitHub ID retrieval\n", result);
@@ -205,9 +242,13 @@ module.exports = class OrgService {
 
             if (org === null) return null;
 
-            Logger.debug('Decrypting OAuth Token...')
-            let decryptedToken = decrypt(org[config.dbTables.organization.auth_token]);
-            org[config.dbTables.organization.auth_token] = decryptedToken;
+            Logger.debug('Decrypting OAuth Token...');
+            let decryptedToken = decrypt(org[dbRows.auth_token]);
+            org[dbRows.auth_token] = decryptedToken;
+
+            Logger.debug('Decoding Avatar URL...');
+            let decodedURL = base64dec(org[dbRows.avatar_url]);
+            org[dbRows.avatar_url] = decodedURL;
 
             return org;
         } catch (error) {
@@ -250,6 +291,71 @@ module.exports = class OrgService {
             Logger.error('OrgService.getRepoList() failed:', error);
             throw error;
         }
+    }
+
+    // count number of repos and update numRepos
+    // orgID
+    async countRepos(params) {
+        Logger.debug(`Counting Repos for Org ${params.orgID}`)
+        try {
+            let realNumRepos = await this.models.Repository.count({
+                where: {
+                    [dbRows.repo_org_id]:  params.orgID
+                }
+            });
+
+            await this.models.Organization.update({[dbRows.num_repos]: realNumRepos}, {
+                where: {
+                    [dbRows.org_id]: params.orgID
+                }
+            });
+
+            return realNumRepos;
+        } catch (error) {
+            Logger.error("OrgService.countRepos() failed", error);
+            throw error;
+        }
+    }
+
+    // should find a better way to do this without having to import sequelize.
+    // WARNING: this puts a param in the raw SQL. Make sure this is never user input
+    // orgID
+    async countDeps(params) {
+        Logger.debug(`Counting Deps for Org ${params.orgID}`)
+        try {
+            const SQL = `SELECT DISTINCT dep_name FROM dependency WHERE depfile_id IN (SELECT depfile_id FROM dependency_file WHERE repo_id IN (SELECT repo_id FROM repository WHERE org_id=${params.orgID}));`
+            const [results, metadata] = await sequelize.query(SQL);
+
+            const numDeps = results.length
+
+            await this.models.Organization.update({[dbRows.num_deps]: numDeps}, {
+                where: {
+                    [dbRows.org_id]: params.orgID
+                }
+            });
+
+            return numDeps;
+        } catch (error) {
+            Logger.error("OrgService.countDeps() failed", error);
+            throw error;
+        }
+    }
+
+    async listDeps(params) {
+        const SQL = `SELECT DISTINCT dep_name FROM dependency WHERE depfile_id IN (SELECT depfile_id FROM dependency_file WHERE repo_id IN (SELECT repo_id FROM repository WHERE org_id=${params.orgID}));`
+        const [results, metadata] = await sequelize.query(SQL);
+
+        return results;
+    }
+
+    // depList, depName
+    async depExists(params) {
+        for (const dep of params.depList) {
+            if (dep[dbRows.dep_name] === params.depName) {
+                return {exists: true, name: dep[dbRows.dep_name]};
+            }
+        }
+        return {exists: false, name: undefined};
     }
 }
 
