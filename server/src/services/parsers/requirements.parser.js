@@ -15,9 +15,7 @@ async function requirementsParser(blob) {
 
         let formattedDeps = []
         for (const line of regged) {
-            console.log(line);
             if (line[0] !== '') {
-                console.log(line[0].split(/(?=[<=>]{2})/));
                 const depVersionSplit = line[0].split(/(?=[<=>]{2})/);
                 // if there is no version specified
                 // filling in with a space, bc db rules won't let it be empty
@@ -34,7 +32,6 @@ async function requirementsParser(blob) {
                 }
             }
         }
-        console.log(formattedDeps);
         return formattedDeps;
     } catch (error) {
         Logger.error("Requirements.txt parser failed to parse:", blob);
