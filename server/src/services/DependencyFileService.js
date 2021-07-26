@@ -18,7 +18,7 @@ const DEP_FILES = [
     //'package-lock.json',
     // 'Gemfile',
     'Gemfile.lock',
-    //'requirements.txt',
+    'requirements.txt',
 ];
 
 module.exports = class DependencyFileService {
@@ -155,8 +155,9 @@ module.exports = class DependencyFileService {
             case 'Gemfile.lock':
                 const { gemfileParser } = require('./parsers/gemfile.parser');
                 return { language: 'ruby', parser: gemfileParser }
-            // case 'requirements.txt':
-            //     return {language: 'python', parser: 'NEED TO MAKE'};
+            case 'requirements.txt':
+                const { requirementsParser } = require('./parsers/requirements.parser')
+                return {language: 'python', parser: requirementsParser};
         }
     }
 
