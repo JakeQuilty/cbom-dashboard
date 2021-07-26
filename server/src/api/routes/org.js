@@ -68,6 +68,7 @@ module.exports = (app) => {
                 }
 
                 const ghData = await orgService.getGithubData(req.body.name, req.body.authToken);
+                console.log(ghData.avatarUrl)
 
                 const org = await orgService.create({
                     orgName: req.body.name,
@@ -161,14 +162,4 @@ module.exports = (app) => {
                 return res.status(errRes.status).json({error: errRes.error});
             }
         });
-    
-    route.post('/update/ghtoken', 
-        //celebrate
-        ),
-        async (req, res) => {
-            Logger.info(`::::: Updating OAuth Token Org: ${req.body.name} :::::`);
-            Logger.debug('body: %o', req.body);
-
-            return res.status(200);
-        }
 }

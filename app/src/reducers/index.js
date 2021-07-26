@@ -6,7 +6,8 @@ import {
     SIDEBARE_TOGGLE,
     IS_SCANNING_TOGGLE,
     UPDATE_REPO_DEPS,
-    UPDATE_DEPS
+    UPDATE_DEPS,
+    UPDATE_DEP_REPOS
 } from "../constants/action-types"
 
 const initialState = {
@@ -113,6 +114,21 @@ function rootReducer(state = initialState, action) {
                 orgList: updateDeps
             }
 
+        case UPDATE_DEP_REPOS:
+            let updateDepRepos = state.orgList
+            for (const org of updateDepRepos) {
+                if (org.id === action.payload.orgID) {
+                    for (const dep of org.deps) {
+                        if (dep.id === action.payload.depID) {
+                            dep.repos = action.payload.repos
+                        }
+                    }
+                }
+            }
+            return {
+                ...state,
+                orgList: updateDepRepos
+            }
 
         default:
             return state

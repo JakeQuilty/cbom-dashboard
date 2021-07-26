@@ -6,7 +6,8 @@ import {
     UPDATE_NUM_REPOS,
     UPDATE_REPO_DEPS,
     UPDATE_DEPS,
-    UPDATE_NUM_DEPS
+    UPDATE_NUM_DEPS,
+    UPDATE_DEP_REPOS
 } from "../constants/action-types"
 
 export function addOrgToList(payload) {
@@ -39,4 +40,8 @@ export function updateDeps(payload) {
 
 export function updateNumDeps(payload) {
     return { type: UPDATE_NUM_DEPS, payload}
+}
+
+export function updateDepRepos(payload) {
+    return { type: UPDATE_DEP_REPOS, payload }
 }

@@ -59,8 +59,6 @@ const RepoDepList = ({org, repo, perPage}) => {
             let res = await apiFetchRepoDeps({repoID: repo.id})
             setIsFetching(false)
 
-            console.log(res);
-
             // update deps in repo
             updateRepoDepState(org.id, repo.id, res.data)
         }

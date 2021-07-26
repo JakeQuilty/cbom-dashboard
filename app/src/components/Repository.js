@@ -41,7 +41,7 @@ const Repository = ({match, orgs}) => {
                 </CCol>
             </CRow>
             <CRow alignHorizontal="center">
-                <CCol lg={12} xl={6}>
+                <CCol lg='12'>
                     {<RepoDepList org={org} repo={repo} perPage={50}/>}
                 </CCol>
             </CRow>

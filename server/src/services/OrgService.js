@@ -47,7 +47,8 @@ module.exports = class OrgService {
         Logger.debug(`Creating Org: ${params.orgName}`);
 
         const encryptedToken = encrypt(params.authToken);
-        const base64AvatarURL = base64enc(params.avatar);
+        const base64AvatarURL = await base64enc(params.avatar);
+        console.log(base64AvatarURL)
 
         let org = await this.models.Organization.findOrCreate({
             where: {

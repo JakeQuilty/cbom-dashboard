@@ -24,3 +24,8 @@ export async function apiFetchDeps(data) {
     let response =  await postReq('/api/dep/list', data);
     return response
 }
+
+export async function apiFetchDepRepos(data) {
+    let response =  await postReq('/api/dep/list/repos', data);
+    return response
+}
