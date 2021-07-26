@@ -1,6 +1,6 @@
 
 
-async function parse(blob) {
+async function javascriptParser(blob) {
     //https://fix.code-error.com/how-to-decode-base64-encoded-json-object-string-in-node-js/
     let objectBlob = JSON.parse(blob);
 
@@ -21,5 +21,5 @@ async function parse(blob) {
 }
 
 module.exports = {
-    parse
+    javascriptParser
 }

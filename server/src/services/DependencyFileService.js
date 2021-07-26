@@ -16,8 +16,8 @@ const dbRow = {
 const DEP_FILES = [
     'package.json',
     //'package-lock.json',
-    //'Gemfile',
-    //'Gemfile.lock',
+    // 'Gemfile',
+    'Gemfile.lock',
     //'requirements.txt',
 ];
 
@@ -150,8 +150,11 @@ module.exports = class DependencyFileService {
         let fileName = path.basename(filePath)
         switch (fileName) {
             case 'package.json':
-                const { parse } = require('./parsers/package-json.parser.js')
-                return {language: 'javascript', parser: parse};
+                const { javascriptParser } = require('./parsers/package-json.parser.js');
+                return { language: 'javascript', parser: javascriptParser};
+            case 'Gemfile.lock':
+                const { gemfileParser } = require('./parsers/gemfile.parser');
+                return { language: 'ruby', parser: gemfileParser }
             // case 'requirements.txt':
             //     return {language: 'python', parser: 'NEED TO MAKE'};
         }
