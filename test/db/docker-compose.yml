@@ -10,7 +10,7 @@ services:
     ports:
       - 3306:3306
     environment:
-      MYSQL_DATABASE: cbom_maker
+      MYSQL_DATABASE: cbom_dashboard
       MYSQL_USER: user
       MYSQL_PASSWORD: password123
       MYSQL_ROOT_PASSWORD: rootPassword123
